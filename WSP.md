@@ -67,3 +67,47 @@ The WSP model is strictly better than the previous default on held-out data and 
 - **G also fires on 48% of replay windows.** Replay through Playwright loses the device clock too.
 - **"Clocked" human data is partly our own emulation.** Several datasets were frame-coalesced during conversion (see DATA.md), so part of the clocked-human signal comes from that emulation. Real browsers do coalesce to frames, but check G's fire rate on your own traffic (0.1 to 1.8% of test-user windows here, highest on DUX).
 - **No touch data.**
+
+## Round 2: units guided by the real-tool benchmark (bench/)
+Design data: bench sessions in plan blocks with even `(i//4)%2` plus train/val humans. Evaluation: the odd blocks (148 sessions per tool), the 79 held-out test users, and leave-one-dataset-out (LODO) models with the same units installed. Code: `tune/wsp/bench_wsp.py`, `tune/wsp/units.py`.
+
+**Acceptance rule:** the bench score rises, the worst test-user dataset stays at ≤1% session FPR, and LODO FPR doesn't get worse.
+
+| unit | target and intent | raw-feature params (`h=relu(gain·(Σw·x+b))`, `logit += out·h`) | design-half effect | verdict |
+|---|---|---|---|---|
+| B `early_peak_metronome` | botasaurus' humanised cursor peaks in speed at the very start of every move (peak_pos ≈0.005 against ≈0.4 for people) and runs on a steady clock (dt_cv ≈0.17 against ≈0.6) | w: peak_pos −1/0.03, dt_cv −1/0.3, n_moves +1; b −1.5; gain 2; out +1.6 | botasaurus 16→67%, ghost 62→85%, FPR unchanged | **kept** |
+| W `wheel_burst` | `pyautogui.scroll(k)` sends k wheel notches less than 4 ms apart | w: dt_sub4_frac 1/0.04, has_scroll 3; b −4.25; gain 3; out +1.6 | pyautogui 75→90%, nodriver +4 pts, FPR unchanged | **kept, flagged:** of our humans, only AdSERP (16k windows) and DUX (0.9k) scroll |
+| R `scroll_reader` | LODO suppressor: a window with scrolling only (no pointer, keys or clicks) is evidence of a human | w: has_scroll 1, has_mouse −1, has_keys −1, has_click −1; b −0.5; gain 6; out −1.6 | LODO AdSERP 47.0→43.7%, nodriver −1.4 pts | **kept, flagged:** keys on event absence |
+| G `clocked_glide` (slack 1–4) | ghost-cursor's near-perfect clock (dt_cv ≈0.10, dt_mode_share ≈0.55), long paths, no pauses | w: dt_cv −1/0.15, dt_mode_share 1/0.15, n_moves 1, pause_frac −1/0.02 | slack 1: worst FPR 2.1%; slack 3: +0.4 pts score, but LODO AdSERP/BOUN +0.1 pt and pooled FPR up | rejected (B already covers ghost) |
+| K `keyless_typing` | input with no keydown (CDP `insertText`/fill) | w: input_no_key_frac 1; b −0.08; gain 60; out 1.6 | botasaurus +37 pts | **vetoed:** our converters synthesise human `input` events from key presses, so the human FPR can't be measured |
+| S `keys_scroll_no_mouse` | — | — | no effect | rejected |
+
+**An install fix.** If a unit's output weight is larger than the LODO model's largest output code, installing it re-quantised the whole output row. That flipped 2–3 borderline human segments (0.498→0.502) in every LODO model. `units.py` now puts the excess into the unit's own layer-2 relay weight. With a null unit, LODO is now bit-identical to the baseline.
+
+**Eval half (held out from design)**, session detection per tool:
+
+| model | ghost | pptr-st | pw-st | uc | nodriver | botasaurus | pyautogui | MCP | replay-CDP | replay-xdo | worst LUO | pooled sess / window | LODO worst (AdSERP) | bench score |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| before @0.5 | 62.2 | 51.4 | 52.7 | 38.5 | 52.7 | 17.6 | 75.0 | 46.6 | 2.7 | 31.8 | 1.4% (fails) | 0.4% / 0.28% | 47.0% | 0 |
+| before @0.55 (its best threshold) | 61.5 | 50.7 | 52.7 | 37.2 | 51.4 | 12.2 | 75.0 | 45.9 | 2.7 | 31.1 | 1.1% | 0.3% | 47.0% | 42.0 |
+| **B+W+R, thr 0.65 (shipped)** | 78.4 | 48.6 | 49.3 | 29.1 | 49.3 | 67.6 | 85.8 | 45.9 | 3.4 | 31.1 | **0.5%** | 0.2% / 0.16% | **43.7%** | **48.9** |
+| B+W+R @0.55 | 82.4 | 50.7 | 52.7 | 37.2 | 51.4 | 71.6 | 85.8 | 45.9 | 3.4 | 31.1 | 1.1% | 0.3% | 43.7% | 51.2 |
+
+- **The 0.65 threshold was picked on validation users,** as the lowest threshold where the worst validation dataset is at ≤0.5%: half the 1% budget, because validation users never reproduced KeyRecs' 1.4% on test users.
+- **The score drop for the stealth, uc and nodriver tools at 0.65 is the threshold, not the units.** The units leave those tools unchanged at a fixed threshold.
+
+**Fine-tune comparison** (same design data, replays excluded, eval half; the threshold is the worst-test-group-1% threshold):
+
+| model | params changed | bench score | threshold needed | worst LUO @0.5 |
+|---|---|---|---|---|
+| B+W+R (WSP) | 21 | 51.2 (48.9 at shipped 0.65) | 0.55 / 0.65 | 1.4% (as before; KeyRecs, keyboard-only) |
+| fine-tune, 3 dead slots, lr 1e-3 | ~126 | **61.1** | 0.80 | 2.1% (AdSERP) |
+| fine-tune, 3 dead slots, lr 3e-4 | ~126 | 58.4 | 0.68 | 2.7% |
+| fine-tune, all surviving weights, lr 1e-3 | ~1.5k | 55.5 | 0.99 | 41.6% (calibration destroyed) |
+
+**Verdict.**
+- **Gradient slots beat the hand-written units on this eval half by about 10 points,** but they need a large threshold move.
+- **The eval half shares tools with the design half,** so the fine-tune can memorise tool identity. Round 3 tests that with leave-one-tool-out.
+- **LODO couldn't be measured for the fine-tunes.** The LODO models have no dead slots (`tune/wsp/benchft-lodo.json`).
+
+**Out of scope for motion.** Replays of real human traces (replay-CDP 3%, replay-xdotool 31%) carry real human motion, so no motion unit can or should catch them.

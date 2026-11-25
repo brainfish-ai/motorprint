@@ -47,3 +47,9 @@ Leave-users-out = the shipped model on its held-out test users. Leave-one-datase
 | **worst** | **0.6%** | **1.4%** | **25.6%** | **47.0%** | 38.8% |
 
 Thresholds on pooled test humans: window 0.105 (1% FPR) / 0.758 (0.1%); session 0.166 / 0.792; worst-group-1% session threshold 0.550.
+
+## Update: WSP round 2 shipped (see WSP.md, "Round 2")
+The table above is the pre-WSP baseline on the full bench. The shipped model is now B+W+R at threshold 0.65, measured on the held-out eval half (`RESULTS-eval-BWR-t65.md` against `RESULTS-eval-baseline.md`):
+- **Bench score:** 0 → 48.9 at the shipped threshold (the baseline's best threshold gave 42.0).
+- **Worst-dataset session FPR:** 1.4% → 0.5%.
+- **LODO worst:** 47.0% → 43.7%.
