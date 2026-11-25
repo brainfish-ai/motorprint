@@ -2,6 +2,7 @@
 // >= 4 events, skip a tick if the window did not change) and write per-tick features + cheap-baseline flags.
 // Bots: bench/data/raw/<tool>/*.json. Humans: data/external/sessions/*.jsonl cut into 10 s segments.
 // Usage: npx tsx bench/featurize.ts -> bench/data/windows.jsonl (gitignored)
+// Round 3: BENCH_RAW=raw2 BENCH_WINDOWS=windows2.jsonl BENCH_NO_HUMANS=1 featurizes the probe recordings' bot sessions only.
 import { readFileSync, readdirSync, writeFileSync, existsSync, createWriteStream } from 'node:fs';
 import { join } from 'node:path';
 import { extractFeatures, windowAt } from '../src/features';
@@ -9,7 +10,8 @@ import type { Ev } from '../src/types';
 
 const here = import.meta.dirname, root = join(here, '..');
 const TICK = 500, W = 3000, SEG = 10000, MIN_EV = 4;
-const out = createWriteStream(join(here, 'data', 'windows.jsonl'));
+const OUTF = process.env.BENCH_WINDOWS || 'windows.jsonl';
+const out = createWriteStream(join(here, 'data', OUTF));
 const r4 = (v: number) => (Number.isFinite(v) ? Math.round(v * 1e4) / 1e4 : 0);
 
 /** Naive event-rate rules a site could write by hand (no model). */
@@ -48,7 +50,7 @@ function stream(id: string, meta: Record<string, unknown>, evs: Ev[]) {
 }
 
 // bots
-const raw = join(here, 'data', 'raw');
+const raw = join(here, 'data', process.env.BENCH_RAW || 'raw');
 let nb = 0;
 for (const tool of existsSync(raw) ? readdirSync(raw).sort() : []) {
   for (const f of readdirSync(join(raw, tool)).sort()) {
@@ -61,7 +63,7 @@ const split = JSON.parse(readFileSync(join(here, 'human_split.json'), 'utf8'));
 const role: Record<string, string> = {};
 for (const k of ['train', 'val', 'test']) for (const u of split[k]) role[u] = k;
 let nh = 0;
-for (const ds of split.datasets) {
+for (const ds of process.env.BENCH_NO_HUMANS ? [] : split.datasets) {
   for (const line of readFileSync(join(root, 'data', 'external', 'sessions', `${ds}.jsonl`), 'utf8').split('\n')) {
     if (!line.trim()) continue;
     const s = JSON.parse(line); const ev: Ev[] = s.events.slice().sort((a: Ev, b: Ev) => a.t - b.t);
@@ -74,4 +76,4 @@ for (const ds of split.datasets) {
     }
   }
 }
-out.end(() => console.log(`bench windows: ${nb} bot sessions, ${nh} human 10 s segments -> bench/data/windows.jsonl`));
+out.end(() => console.log(`bench windows: ${nb} bot sessions, ${nh} human 10 s segments -> bench/data/${OUTF}`));

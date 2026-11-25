@@ -88,12 +88,23 @@ def worst_fpr(det, sessions):
 R = dict(model_thr=THR, n_bot_sessions=len(bots), n_human_segments_test=len(hum_test), tools={}, detectors={}, humans={})
 by_tool = {t: [s for s in bots if s['group'] == t] for t in TOOLS}
 
-# thresholds for TPR @ fixed FPR on LOUO test humans (pooled), window- and session-level
+# ALL thresholds are calibrated on VALIDATION users only (never the test users they are then reported on).
+# TPR @ 1% / 0.1% FPR = threshold at that pooled FPR on val humans; AUCs use test humans (threshold-free).
+hum_val = [s for s in hum if s['split'] == 'val']
 hw = np.concatenate([s['p'] for s in hum_test if len(s['p'])]); hs = np.array([s['smax'] for s in hum_test])
+hw_v = np.concatenate([s['p'] for s in hum_val if len(s['p'])]); hs_v = np.array([s['smax'] for s in hum_val])
 def thr_at(x, fpr): return float(np.quantile(x, 1 - fpr)) + 1e-12
-TW = {f: thr_at(hw, f) for f in (0.01, 0.001)}; TS = {f: thr_at(hs, f) for f in (0.01, 0.001)}
-# summary threshold: lowest session threshold where EVERY dataset's (test users) session FPR <= 1%
-tau = max(thr_at(np.array([s['smax'] for s in hum_test if s['group'] == d]), 0.01) for d in DATASETS)
+TW = {f: thr_at(hw_v, f) for f in (0.01, 0.001)}; TS = {f: thr_at(hs_v, f) for f in (0.01, 0.001)}
+# summary threshold: lowest session threshold where EVERY dataset's VAL-user session FPR <= 0.5% (half the 1% budget,
+# because val users are fewer); the bench score then requires the TEST users' worst dataset to stay <= 1%.
+VAL_BUDGET = 0.005
+def worst_val_thr(budget=VAL_BUDGET):
+    per = {d: np.array([s['smax'] for s in hum_val if s['group'] == d]) for d in DATASETS}
+    u = np.unique(np.concatenate(list(per.values()))); cands = np.r_[(u[:-1] + u[1:]) / 2, u[-1] + 1e-6]
+    for t in cands:
+        if max((v >= t).mean() for v in per.values() if len(v)) <= budget: return float(t)
+    return 1.0
+tau = worst_val_thr()
 R['thresholds'] = dict(window_fpr1=TW[0.01], window_fpr01=TW[0.001], session_fpr1=TS[0.01], session_fpr01=TS[0.001], summary_worst_group_1pct=tau)
 
 for t, ss in by_tool.items():
@@ -127,14 +138,15 @@ for name, det in DETS.items():
     row['mean_tool_det'] = float(np.mean(list(row['tools'].values())))
     row['bench_score'] = row['mean_tool_det'] if row['worst_session_fpr'] <= 0.01 else 0.0
     R['detectors'][name] = row
-# model at the worst-group-1% threshold (the summary operating point)
+# model at the val-calibrated threshold (the summary operating point)
 det_tau = lambda s: det_model(s, tau)
 row = dict(tools={t: rates(det_tau, ss)[1] for t, ss in by_tool.items() if ss}); wf = worst_fpr(det_tau, hum_test)
 row['human_fpr_by_dataset_session'] = {d: v[1] for d, v in wf.items()}; row['human_fpr_by_dataset_window'] = {d: v[0] for d, v in wf.items()}
 row['worst_session_fpr'] = max(row['human_fpr_by_dataset_session'].values()); row['worst_window_fpr'] = max(row['human_fpr_by_dataset_window'].values())
 row['pooled_window_fpr'], row['pooled_session_fpr'] = rates(det_tau, hum_test)
-row['mean_tool_det'] = float(np.mean(list(row['tools'].values()))); row['bench_score'] = row['mean_tool_det']
-R['detectors'][f'motorprint model @ worst-group-1% thr ({tau:.3f})'] = row
+row['mean_tool_det'] = float(np.mean(list(row['tools'].values()))); row['bench_score'] = row['mean_tool_det'] if row['worst_session_fpr'] <= 0.01 else 0.0
+_nr = [t for t in row['tools'] if not t.startswith('replay')]; row['bench_score_no_replays'] = float(np.mean([row['tools'][t] for t in _nr])) if row['worst_session_fpr'] <= 0.01 else 0.0
+R['detectors'][f'motorprint model @ val-calibrated thr ({tau:.3f})'] = row
 
 # ---------------- leave-one-dataset-out (recipe retrained without each dataset; no benchmark bots involved) ----------------
 lodo_dir = HERE / 'data' / 'lodo-models'; lodo_dir.mkdir(parents=True, exist_ok=True)
@@ -173,7 +185,7 @@ present = [t for t in TOOLS if t in R['tools']]
 L = [f'# motorprint bench results{(" (" + args.tag + ")") if args.tag else ""}', '',
      f'{len(bots)} bot sessions ({args.half} half) from {len(present)} tools; human test set = {len(hum_test)} ten-second segments from {len({s["user"] for s in hum_test})} held-out users (leave-users-out) across {len(DATASETS)} datasets. Model threshold {THR}.', '',
      '## Headline: session-level detection per tool', '',
-     '**Bench score** = mean session detection rate over the tools, at an operating point where the *worst* human dataset has at most 1% session FPR (0 if the detector cannot get there).', '',
+     '**Bench score** = mean session detection rate over the tools; 0 if the worst TEST-user dataset exceeds 1% session FPR. For the model, the operating threshold is calibrated on VALIDATION users only (worst val dataset <= 0.5% session FPR) and then applied unchanged to the test users.', '',
      '| detector | ' + ' | '.join(short[t] for t in present) + ' | worst-group session FPR | pooled session FPR | **bench score** |', '|---|' + '---|' * (len(present) + 3)]
 for name, row in R['detectors'].items():
     L.append(f'| {name} | ' + ' | '.join(pc(row['tools'].get(t, float("nan"))) for t in present) + f" | {pc(row['worst_session_fpr'])} | {pc(row['pooled_session_fpr'])} | **{100 * row['bench_score']:.1f}** |")
@@ -188,6 +200,6 @@ L += ['', '## Humans: false-positive rate by dataset', '', 'Leave-users-out = th
 for d in DATASETS:
     L.append(f"| {d} | {pc(m['human_fpr_by_dataset_window'][d])} | {pc(m['human_fpr_by_dataset_session'][d])} | {pc(R['lodo'][d]['window_fpr'])} | {pc(R['lodo'][d]['session_fpr'])} | {pc(R['detectors']['event-rate rules (all 4)']['human_fpr_by_dataset_session'][d])} |")
 L.append(f"| **worst** | **{pc(m['worst_window_fpr'])}** | **{pc(m['worst_session_fpr'])}** | **{pc(R['lodo_worst_window_fpr'])}** | **{pc(R['lodo_worst_session_fpr'])}** | {pc(R['detectors']['event-rate rules (all 4)']['worst_session_fpr'])} |")
-L += ['', f"Thresholds on pooled test humans: window {R['thresholds']['window_fpr1']:.3f} (1% FPR) / {R['thresholds']['window_fpr01']:.3f} (0.1%); session {R['thresholds']['session_fpr1']:.3f} / {R['thresholds']['session_fpr01']:.3f}; worst-group-1% session threshold {tau:.3f}."]
+L += ['', f"Thresholds calibrated on pooled val humans: window {R['thresholds']['window_fpr1']:.3f} (1% FPR) / {R['thresholds']['window_fpr01']:.3f} (0.1%); session {R['thresholds']['session_fpr1']:.3f} / {R['thresholds']['session_fpr01']:.3f}; val-calibrated session threshold {tau:.3f}. Bench score without replay tools at the val-calibrated threshold: {100 * R['detectors'][f'motorprint model @ val-calibrated thr ({tau:.3f})']['bench_score_no_replays']:.1f}."]
 (out / f'RESULTS{sfx}.md').write_text('\n'.join(L) + '\n')
 print('\n'.join(L))
