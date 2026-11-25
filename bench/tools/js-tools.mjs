@@ -10,7 +10,7 @@ const [tool, from = '0', to = '300'] = process.argv.slice(2);
 const plan = JSON.parse(readFileSync(join(here, 'plan.json'), 'utf8')).slice(+from, +to);
 const traces = existsSync(join(here, 'data', 'replay-traces.jsonl')) ? readFileSync(join(here, 'data', 'replay-traces.jsonl'), 'utf8').trim().split('\n').map(JSON.parse) : [];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const done = (sid) => { const f = join(here, 'data', 'raw', tool, sid + '.json'); return existsSync(f) && statSync(f).size > 400; };
+const done = (sid) => { const f = join(here, 'data', process.env.BENCH_RAW || 'raw', tool, sid + '.json'); return existsSync(f) && statSync(f).size > 400; };
 const sidOf = (p) => `${tool}__${String(p.i).padStart(3, '0')}-${p.task}`;
 const url = (p, task = p.task) => `${BASE}?task=${task}&sid=${sidOf(p)}`;
 const ARGS = ['--no-sandbox', '--window-size=1280,800', '--disable-dev-shm-usage'];

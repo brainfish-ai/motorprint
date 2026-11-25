@@ -1,6 +1,6 @@
 import { extractFeatures, FEATURE_NAMES, windowAt } from './features';
 import { createModel, type ModelSpec } from './model';
-import { createRecorder } from './recorder';
+import { createRecorder, type Signals } from './recorder';
 import type { Ev } from './types';
 import { MODEL } from './weights';
 
@@ -20,6 +20,10 @@ export interface BotScore {
   features: Record<string, number>;
   /** ms spent extracting features + running the model for the latest window. */
   inferenceMs: number;
+  /** Provenance tells seen so far (see Signals). Any non-zero count sets isBot regardless of the motion score. */
+  signals: Signals;
+  /** Why isBot is true: 'motion' and/or the names of the provenance signals that fired. */
+  reasons: string[];
 }
 
 export interface BotDetectorOptions {
@@ -37,6 +41,8 @@ export interface BotDetectorOptions {
   root?: Document;
   /** Start listening immediately. Default true. */
   autoStart?: boolean;
+  /** Let provenance signals (teleportClick, pressure0, keylessInsert) set isBot. Default true. */
+  useSignals?: boolean;
 }
 
 export interface BotDetector {
@@ -97,7 +103,10 @@ export function createBotDetector(opts: BotDetectorOptions = {}): BotDetector {
     const score = 1 / (1 + Math.exp(-logit));
     const features: Record<string, number> = {};
     FEATURE_NAMES.forEach((n, i) => (features[n] = f[i]));
-    current = { score, raw, isBot: score >= thr, threshold: thr, windows, events: w.length, features, inferenceMs };
+    const signals = { ...rec.signals };
+    const reasons = (opts.useSignals === false ? [] : (Object.keys(signals) as (keyof Signals)[]).filter((k) => signals[k] > 0)) as string[];
+    if (score >= thr) reasons.unshift('motion');
+    current = { score, raw, isBot: reasons.length > 0, threshold: thr, windows, events: w.length, features, inferenceMs, signals, reasons };
     opts.onScore?.(current);
     return current;
   };

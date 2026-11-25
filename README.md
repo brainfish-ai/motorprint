@@ -34,7 +34,17 @@ function Checkout() {
 
 Options: `intervalMs` (500), `windowMs` (3000, must match training), `minEvents` (4), `smoothing` (EMA on log-odds, 0.35), `model` (bring your own retrained spec), `autoStart` (true). `scoreEvents(events)` scores a recorded session offline. `createRecorder()` gives you the raw event stream.
 
-`BotScore` = `{ score, raw, isBot, threshold, windows, events, features, inferenceMs }`. `threshold` is 0.5. Calibrating lower raised the false-positive rate on held-out real users, so it stays at 0.5 (see [`tune/REPORT.md`](tune/REPORT.md)).
+`BotScore` = `{ score, raw, isBot, threshold, windows, events, features, inferenceMs, signals, reasons }`.
+- **`threshold` is 0.704,** calibrated on validation users only.
+- **`signals` are sticky provenance tells,** counted from the moment the detector starts:
+  - `teleportClick`: a scripted move, press and release;
+  - `pressure0`: a mouse press with pressure 0, which CDP sends by default;
+  - `keylessInsert`: text inserted with no key press.
+- **Any signal sets `isBot`.** `reasons` lists `'motion'` and/or the signals that fired. Pass `useSignals: false` to rely on motion alone.
+- **The signals carry real-human false-positive risk:**
+  - `teleportClick` is checked on human datasets: 0.21% of BOUN segments and 0 elsewhere.
+  - `pressure0` and `keylessInsert` can't be checked on our human datasets. They never fired on 160 real-OS-input sessions (Chrome/Linux), but other browsers, pens, IMEs and dictation are unverified.
+- See `tune/r3/RESULTS.md`.
 
 ## Demo
 

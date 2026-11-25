@@ -1,0 +1,50 @@
+{
+ "replay-cdp": {
+  "sessions": 300,
+  "with_run": 127,
+  "collide": 78,
+  "rate": 0.6142
+ },
+ "replay-xdotool": {
+  "sessions": 300,
+  "with_run": 127,
+  "collide": 52,
+  "rate": 0.4094
+ },
+ "ghost-cursor": {
+  "sessions": 300,
+  "with_run": 210,
+  "collide": 0,
+  "rate": 0.0
+ },
+ "botasaurus-human": {
+  "sessions": 300,
+  "with_run": 238,
+  "collide": 0,
+  "rate": 0.0
+ },
+ "human:adserp": {
+  "sessions": 3065,
+  "with_run": 1501,
+  "collide": 6,
+  "rate": 0.004
+ },
+ "human:boun": {
+  "sessions": 4234,
+  "with_run": 3106,
+  "collide": 17,
+  "rate": 0.0055
+ },
+ "human:dux": {
+  "sessions": 3333,
+  "with_run": 1680,
+  "collide": 16,
+  "rate": 0.0095
+ },
+ "human:mousetask": {
+  "sessions": 3636,
+  "with_run": 2821,
+  "collide": 45,
+  "rate": 0.016
+ }
+}

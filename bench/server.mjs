@@ -3,7 +3,7 @@
 import http from 'node:http';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
-const here = import.meta.dirname, site = join(here, 'site'), raw = join(here, 'data', 'raw');
+const here = import.meta.dirname, site = join(here, 'site'), raw = join(here, 'data', process.env.BENCH_RAW || 'raw');
 const port = +(process.env.BENCH_PORT || 18790);
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
 http.createServer((req, res) => {

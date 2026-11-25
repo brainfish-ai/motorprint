@@ -15,7 +15,7 @@ TRACES = [json.loads(l) for l in open(HERE / 'data' / 'replay-traces.jsonl')] if
 
 def sid_of(p, task=None): return f"{tool}__{p['i']:03d}-{task or p['task']}"
 def done(sid):
-    f = HERE / 'data' / 'raw' / tool / f'{sid}.json'; return f.exists() and f.stat().st_size > 400
+    f = HERE / 'data' / os.environ.get('BENCH_RAW', 'raw') / tool / f'{sid}.json'; return f.exists() and f.stat().st_size > 400
 def url(p, task=None): return f"{BASE}?task={task or p['task']}&sid={sid_of(p, task)}"
 
 

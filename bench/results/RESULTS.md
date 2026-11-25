@@ -60,3 +60,8 @@ Held-out eval half (`RESULTS-eval-baseline.md` against `RESULTS-eval-BWR-t65.md`
 | pre-WSP-2 @ shipped 0.5 | 0 | – | 1.4% (fails) | 47.0% |
 | **WSP-2 shipped (B+W+R) @ 0.65** | **48.9** | **56.8** | 0.5% | 43.7% |
 | WSP-2 @ val-calibrated thr 0.701 | 47.8 | 55.6 | 0.5% | 43.7% |
+
+## Round 3
+Motion model + provenance signals (`tune/r3/RESULTS.md`):
+- **Score:** 87.8 over all 10 tools, 98.8 without replays (eval half of the probe recordings).
+- **Motion-only recordings:** 70.5 with F1 alone.

@@ -111,3 +111,9 @@ Design data: bench sessions in plan blocks with even `(i//4)%2` plus train/val h
 - **LODO couldn't be measured for the fine-tunes.** The LODO models have no dead slots (`tune/wsp/benchft-lodo.json`).
 
 **Out of scope for motion.** Replays of real human traces (replay-CDP 3%, replay-xdotool 31%) carry real human motion, so no motion unit can or should catch them.
+
+## Round 3 (see tune/r3/RESULTS.md)
+- **Combined with WSP-2 + provenance rules:**
+  - Fine-tuning 3 dead slots on top of WSP-2 adds +4.8 leave-tool-out on motion-only data, and nothing once the rules are in.
+  - It needs the threshold at p=0.9957, and LODO can't be measured, so it is not shipped.
+- **The bench score now comes mostly from non-motion provenance rules,** not from weight-space edits.

@@ -73,3 +73,8 @@ Humans are assumed to have `webdriver = false` and all events trusted, which is 
 - **Replays are out of scope for motion features.** A replayed real trace *is* human motion. Catching it needs server-side signals (reuse of the same trace, timing relative to page content, environment fingerprints), not this model.
 - **Load on the box varied.** Recording ran on a shared machine, with up to 9 parallel lanes near the end. Event timing includes that jitter, as it would on a cloud bot farm.
 - **Desktop only.** The human data contains no touch.
+
+## Round 3: provenance probe and rules
+- **New recording set.** `bench/record2.sh` re-records 80 sessions per tool into `bench/data/raw2` on port 18791. The page now also logs a provenance probe: pointer, keyboard, wheel and focus attributes, event-vs-handler lag and rAF frames.
+- **Headline:** `tune/r3/combined.py` scores the motion model OR the provenance rules on held-out sessions, with the threshold calibrated on validation users. Results and caveats are in `tune/r3/RESULTS.md`.
+- **Score: 87.8 over all 10 tools, 98.8 without replays.** Test-dataset FPR stays ≤0.54%.
