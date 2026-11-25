@@ -1,0 +1,13 @@
+botasaurus-humancursor==4.0.83
+botasaurus_driver==4.0.101
+botasaurus_proxy_authentication==1.0.16
+nodriver==0.50.99
+PyAutoGUI==0.9.54
+python-xlib==0.33
+python3-xlib==0.15
+selenium==4.54.0
+setuptools==84.2.1
+trio-websocket==0.12.2
+undetected-chromedriver==3.5.5
+websocket-client==1.9.2
+websockets==17.4

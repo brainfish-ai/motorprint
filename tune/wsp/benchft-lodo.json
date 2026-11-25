@@ -1,0 +1,38 @@
+{
+ "adserp": {
+  "base_session_fpr": 0.4703770197486535,
+  "ft_session_fpr": 0.4703770197486535,
+  "ft_session_fpr_at_0798": 0.43590664272890484,
+  "dead_slots": 0
+ },
+ "boun": {
+  "base_session_fpr": 0.047300908605024054,
+  "ft_session_fpr": 0.047300908605024054,
+  "ft_session_fpr_at_0798": 0.02672367717797969,
+  "dead_slots": 0
+ },
+ "cmu": {
+  "base_session_fpr": 0.0,
+  "ft_session_fpr": 0.0,
+  "ft_session_fpr_at_0798": 0.0,
+  "dead_slots": 0
+ },
+ "dux": {
+  "base_session_fpr": 0.10134721371708512,
+  "ft_session_fpr": 0.10134721371708512,
+  "ft_session_fpr_at_0798": 0.06399265156154317,
+  "dead_slots": 0
+ },
+ "keyrecs": {
+  "base_session_fpr": 0.03096774193548387,
+  "ft_session_fpr": 0.03096774193548387,
+  "ft_session_fpr_at_0798": 0.007741935483870968,
+  "dead_slots": 0
+ },
+ "mousetask": {
+  "base_session_fpr": 0.0,
+  "ft_session_fpr": 0.0,
+  "ft_session_fpr_at_0798": 0.0,
+  "dead_slots": 0
+ }
+}

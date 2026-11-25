@@ -1,0 +1,16 @@
+{
+  "name": "motorprint-bench",
+  "private": true,
+  "type": "module",
+  "description": "Benchmark harness: off-the-shelf bot tools vs motorprint. Not published.",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@playwright/mcp": "^0.0.86",
+    "ghost-cursor": "^1.4.2",
+    "playwright-core": "^1.66.0-alpha-2026-11-18",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-core": "^25.18.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}

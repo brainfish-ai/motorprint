@@ -19,17 +19,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'train'))
 from mlp import *  # noqa
 
 QUICK = '--quick' in sys.argv
+TAG = sys.argv[sys.argv.index('--tag') + 1] if '--tag' in sys.argv else ''
+SFX = f'-{TAG}' if TAG else ''
 TUNE = ROOT / 'tune'
-RUNS = TUNE / 'runs.jsonl'
+RUNS = TUNE / f'runs{SFX}.jsonl'
 OUTD = TUNE / 'models'; OUTD.mkdir(exist_ok=True)
 RUNS.write_text('')
 NODE_ENV = dict(os.environ, PATH=f"{Path.home()}/.local/node22/bin:" + os.environ.get('PATH', ''))
 
-names, X, y, style, sid = load()
-tr, va, te, held = split(style, sid)
+names, X, y, style, sid, META = load(meta=True)
+OFF, USER, DATASET = META['off'], META['user'], META['dataset']
+tr, va, te, held = split(style, sid, group=USER)
 mu, sd = standardize_fit(X[tr]); Z = standardize(X, mu, sd)
 MASKS = (tr, va, te, held)
-print(f'windows: train {tr.sum()} val {va.sum()} test {te.sum()} heldout-styles {held.sum()}')
+print(f'[{META["humans"]} humans] windows: train {tr.sum()} val {va.sum()} test {te.sum()} heldout-styles {held.sum()} | off={OFF}')
+real_users = lambda m: len(set(USER[m & (y == 0) & np.char.startswith(style.astype(str), 'real_')].tolist()))
+print(f'real human users: train {real_users(tr)} val {real_users(va)} test {real_users(te)}')
 
 
 def logloss(P, mask=va):
@@ -43,9 +48,10 @@ def val_summary(P):
 
 
 def log_run(stage, cfg, P, extra=None):
-    ev = evaluate(P, Z, y, style, sid, MASKS)
+    ev = evaluate(P, Z, y, style, sid, MASKS, dataset=DATASET)
     rec = dict(stage=stage, cfg=cfg, **val_summary(P), test_acc=ev['test']['acc'], test_auc=ev['test']['auc'],
                heldout_acc=ev['heldout']['acc'], heldout_auc=ev['heldout']['auc'], heldout_tpr=ev['heldout']['tpr'],
+               real_fpr=ev.get('real_human_fpr', {}).get('fpr'),
                params=nparams(P)[0], nonzero=nparams(P)[1], t=time.time(), **(extra or {}))
     with RUNS.open('a') as f: f.write(json.dumps(rec) + '\n')
     print(f"[{stage}] {json.dumps(cfg)} val_ll={rec['val_logloss']:.4f} val_auc={rec['val_auc']:.4f} test_auc={rec['test_auc']:.4f} heldout_tpr={rec['heldout_tpr']:.3f} nz={rec['nonzero']}")
@@ -53,7 +59,7 @@ def log_run(stage, cfg, P, extra=None):
 
 
 def measure(spec, tag):
-    path = OUTD / f'{tag}.json'; path.write_text(json.dumps(spec, separators=(',', ':')))
+    path = OUTD / f'{tag}{SFX}.json'; path.write_text(json.dumps(spec, separators=(',', ':')))
     r = subprocess.run(['npx', 'tsx', 'tune/measure.ts', str(path)], cwd=ROOT, capture_output=True, text=True, env=NODE_ENV)
     try: return json.loads(r.stdout.strip().splitlines()[-1])
     except Exception: print(r.stderr); return {}
@@ -61,12 +67,35 @@ def measure(spec, tag):
 
 summary = {}
 def snapshot(stage, P, bits=32, note='', thr=0.5):
-    spec = export(P, mu, sd, names, bits=bits, thr=thr)
-    ev = evaluate(P if bits == 32 else quantize(P, bits)[0], Z, y, style, sid, MASKS, thr=thr)
+    spec = export(P, mu, sd, names, bits=bits, thr=thr, off=OFF)
+    Pe = [[W.copy(), b.copy()] for W, b in (P if bits == 32 else quantize(P, bits)[0])]
+    if OFF: Pe[0][0][:, OFF] = 0.0
+    ev = evaluate(Pe, Z, y, style, sid, MASKS, thr=thr, dataset=DATASET)
     m = measure(spec, stage)
     summary[stage] = dict(note=note, bits=bits, params=nparams(P), eval=ev, measure=m, spec=spec)
+    if 'real_human_fpr' in ev: print(f'   real-human FPR {ev["real_human_fpr"]["fpr"]:.4f} per dataset', {k: round(v['fpr'], 4) for k, v in ev.get('human_fpr', {}).items()})
     print(f'== {stage}: test acc {ev["test"]["acc"]:.4f} auc {ev["test"]["auc"]:.4f} | heldout auc {ev["heldout"]["auc"]:.4f} tpr {ev["heldout"]["tpr"]:.3f} | lib {m.get("lib_gz")} B gz | {m.get("total_us")} us/window')
     return spec
+
+# ---------------- reference: previously shipped model (synthetic humans only), scored on this data ----------------
+OLD = TUNE / 'reference' / 'old-synthetic-only.json'
+if OLD.exists():
+    old = json.loads(OLD.read_text()); pold = spec_predict(old, X); othr = old.get('thr', 0.5)
+    class _Fake: pass
+    ev = dict(test=metrics(y[te], pold[te], othr))
+    ho = held | (te & (y == 0)); ev['heldout'] = metrics(y[ho], pold[ho], othr)
+    ev['per_style'] = {s_: dict(n=int(((te | held) & (style == s_)).sum()), flagged=float((pold[(te | held) & (style == s_)] >= othr).mean())) for s_ in sorted(set(style[te | held].tolist()))}
+    ev['human_fpr'] = {ds: dict(n=int((te & (y == 0) & (DATASET == ds)).sum()), fpr=float((pold[te & (y == 0) & (DATASET == ds)] >= othr).mean())) for ds in sorted(set(DATASET[te & (y == 0)].tolist()))}
+    real = te & (y == 0) & np.char.startswith(style.astype(str), 'real_')
+    allreal = (y == 0) & np.char.startswith(style.astype(str), 'real_')
+    if real.any():
+        _, inv = np.unique(sid[real], return_inverse=True); sp = np.bincount(inv, weights=pold[real]) / np.bincount(inv)
+        ev['real_human_fpr'] = dict(n=int(real.sum()), fpr=float((pold[real] >= othr).mean()), sessions=int(len(sp)), session_fpr=float((sp >= othr).mean()))
+    if allreal.any(): ev['real_human_fpr_all_users'] = dict(n=int(allreal.sum()), fpr=float((pold[allreal] >= othr).mean()))
+    rp = style == 'replay'; ev['attack_replay'] = dict(n=int(rp.sum()), flagged=float((pold[rp] >= othr).mean()))
+    ev['session_test'] = dict(acc=float('nan')); ev['session_heldout'] = dict(acc=float('nan'))
+    summary['ref_old_synthetic'] = dict(note=f'previous main model (synthetic humans), thr {othr}', bits=8, params=(sum(W.size + b.size for W, b in spec_params(old)), sum(int(np.count_nonzero(W)) + b.size for W, b in spec_params(old))), eval=ev, measure=dict(spec_gz=spec_gz_bytes(old)), spec=old)
+    print('reference old model: real-human FPR', ev.get('real_human_fpr'), 'all users', ev.get('real_human_fpr_all_users'))
 
 # ---------------- 0. baseline ----------------
 base_cfg = dict(hidden=[16, 8], lr=3e-3, wd=1e-4, noise=0.0, epochs=30)
@@ -79,14 +108,24 @@ snapshot('0_baseline', P_base, note='float32 16-8, default hparams')
 grid = dict(hidden=[(8,), (16,), (16, 8), (24, 12), (32, 16)], lr=[1e-3, 3e-3, 1e-2], wd=[0.0, 1e-4, 1e-3], noise=[0.0, 0.15])
 if QUICK: grid = dict(hidden=[(16,), (16, 8)], lr=[3e-3], wd=[1e-4], noise=[0.0, 0.15])
 best = None
-for h, lr, wd, nz in itertools.product(*grid.values()):
+def _sweep_one(c):
+    h, lr, wd, nz = c
+    return train(Z[tr], y[tr], Z[va], y[va], hidden=h, lr=lr, wd=wd, noise=nz, epochs=30, seed=0)['last']
+combos = list(itertools.product(*grid.values()))
+WORKERS = int(os.environ.get('MOTORPRINT_WORKERS', '4'))
+if WORKERS > 1:
+    import multiprocessing as mp
+    with mp.get_context('fork').Pool(WORKERS) as pool: results = pool.map(_sweep_one, combos)
+else:
+    results = [_sweep_one(c) for c in combos]
+for (h, lr, wd, nz), Pr in zip(combos, results):
     cfg = dict(hidden=list(h), lr=lr, wd=wd, noise=nz, epochs=30)
-    r = train(Z[tr], y[tr], Z[va], y[va], hidden=h, lr=lr, wd=wd, noise=nz, epochs=30, seed=0)
-    rec = log_run('sweep', cfg, r['last'])
+    rec = log_run('sweep', cfg, Pr)
     key = (round(rec['val_logloss'], 4), rec['params'])
-    if best is None or key < best[0]: best = (key, cfg, r['last'])
+    if best is None or key < best[0]: best = (key, cfg, Pr)
 _, best_cfg, P_sweep = best
 print('best sweep cfg', best_cfg)
+(TUNE / f'best-config{SFX}.json').write_text(json.dumps(best_cfg))
 snapshot('1_sweep', P_sweep, note=f"best of {np.prod([len(v) for v in grid.values()])} configs by val log-loss: {best_cfg}")
 
 # ---------------- 2. SWA + soups ----------------
@@ -139,19 +178,21 @@ final_spec = snapshot('4_quant', P_pruned, bits=q_choice, note=f'int{q_choice} p
 if q_choice == 4: snapshot('4b_int8', P_pruned, bits=8, note='int8 per-row (for comparison)')
 
 # ---------------- 5. threshold calibration (val only) ----------------
-# Falsely flagging a human is the expensive error, so pick the lowest threshold with <=0.5% FPR on validation humans.
+# Falsely flagging a human is the expensive error, so pick the lowest threshold with <=TARGET_FPR on validation humans.
+# Validation users are different people from test users; with real data the val->test gap is ~1.5-2x, hence 0.25%.
+TARGET_FPR = float(os.environ.get('MOTORPRINT_TARGET_FPR', '0.0025'))
 Pq_final = quantize(P_pruned, q_choice)[0] if q_choice < 32 else P_pruned
 pv = predict(Pq_final, Z[va & (y == 0)])
-thr = float(np.clip(np.quantile(pv, 0.995), 0.3, 0.95))
-log_run('calibrate', dict(thr=round(thr, 4), target_val_fpr=0.005), Pq_final)
-final_spec = snapshot('5_calibrated', P_pruned, bits=q_choice, thr=round(thr, 4), note=f'stage 4 model, threshold {thr:.3f} (<=0.5% FPR on val humans)')
+thr = float(np.clip(np.quantile(pv, 1 - TARGET_FPR), 0.5, 0.97))  # never below 0.5: lowering it only adds human FPs
+log_run('calibrate', dict(thr=round(thr, 4), target_val_fpr=TARGET_FPR), Pq_final)
+final_spec = snapshot('5_calibrated', P_pruned, bits=q_choice, thr=round(thr, 4), note=f'stage 4 model, threshold {thr:.3f} (<={TARGET_FPR*100:.2f}% FPR on val humans)')
 
 # ---------------- pick + write ----------------
 def score(stage):
     e = summary[stage]['eval']
     return (round(e['test']['auc'], 3) + round(e['heldout']['auc'], 3), -summary[stage]['measure'].get('lib_gz', 1e9))
 # Ship the final compressed model unless it lost >0.5pt test AUC vs the best stage
-best_stage = max(summary, key=score)
+best_stage = max([k for k in summary if not k.startswith('ref_')], key=score)
 ship = '5_calibrated' if summary['5_calibrated']['eval']['test']['auc'] >= summary[best_stage]['eval']['test']['auc'] - 0.005 else best_stage
 print('shipping', ship)
 
@@ -159,28 +200,39 @@ rows = []
 for st, s in summary.items():
     e, m = s['eval'], s['measure']
     ps = e['per_style']
-    rows.append(f"| {st} | {s['note']} | {s['params'][1]}/{s['params'][0]} | {e['test']['acc']:.4f} | {e['test']['auc']:.4f} | "
+    rf = e.get('real_human_fpr', {}).get('fpr', float('nan'))
+    rows.append(f"| {st} | {s['note']} | {s['params'][1]}/{s['params'][0]} | {e['test']['acc']:.4f} | {e['test']['auc']:.4f} | {rf:.4f} | "
                 f"{e['heldout']['auc']:.4f} | {ps.get('ghost',{}).get('flagged',0):.2f} / {ps.get('wind',{}).get('flagged',0):.2f} / {ps.get('agent',{}).get('flagged',0):.2f} | "
                 f"{e.get('attack_replay',{}).get('flagged',float('nan')):.2f} | {m.get('spec_gz',0)/1024:.2f} | {m.get('lib_gz',0)/1024:.2f} | {m.get('model_us','?')} / {m.get('total_us','?')} |")
-report = ["# motorprint tuning report", "", f"Generated {time.strftime('%Y-%m-%d %H:%M %Z')}. Every individual run: tune/runs.jsonl (RUNS.md).", "",
-          "Test = held-out sessions of the 5 training bot styles + held-out synthetic humans (window level, threshold 0.5 except 5_calibrated).",
+report = [f"# motorprint tuning report ({META['humans']} humans{', ' + TAG if TAG else ''})", "", f"Generated {time.strftime('%Y-%m-%d %H:%M %Z')}. Every individual run: tune/runs.jsonl (RUNS.md).", "",
+          f"Test = held-out sessions of the 5 training bot styles + held-out human {'users' if META['humans'] != 'synthetic' else 'sessions'} ({META['humans']} humans; window level, threshold 0.5 except 5_calibrated and ref_*).",
           "Held-out styles = ghost-cursor-like, WindMouse and AI-agent bots never seen in training, scored against the same human test windows.",
+          "Real-human FPR = share of 3 s windows from held-out real users (people never seen in training) that score as bot.",
           "Replay = synthetic human traces replayed through Playwright (an attack the model is NOT expected to catch).", "",
-          "| stage | what | nonzero/params | test acc | test AUC | held-out AUC | flagged ghost / wind / agent | flagged replay | model KB gz | lib KB gz | µs model / µs feat+model per window |",
-          "|---|---|---|---|---|---|---|---|---|---|---|", *rows, "", f"Shipped: **{ship}**", "",
-          "## Confusion matrices (window level)", ""]
+          "| stage | what | nonzero/params | test acc | test AUC | real-human FPR (held-out users) | held-out AUC | flagged ghost / wind / agent | flagged replay | model KB gz | lib KB gz | µs model / µs feat+model per window |",
+          "|---|---|---|---|---|---|---|---|---|---|---|---|", *rows, "", f"Shipped: **{ship}**", "",
+          ]
+report += ["", "## False-positive rate on held-out human users, per dataset (shipped threshold for 5_calibrated)", ""]
 for st, s in summary.items():
+    hf = s['eval'].get('human_fpr', {})
+    rh = s['eval'].get('real_human_fpr', {})
+    sess_txt = f" | session-level real-human FPR {rh['session_fpr']*100:.2f}% of {rh['sessions']} sessions" if 'session_fpr' in rh else ''
+    report.append(f"- {st}: " + ', '.join(f"{k} {v['fpr']*100:.2f}% (n={v['n']})" for k, v in hf.items()) + sess_txt)
+report += ["", "## Confusion matrices", ""]
+for st, s in summary.items():
+    if st.startswith('ref_'): continue
     t, ho = s['eval']['test'], s['eval']['heldout']
     report.append(f"- {st}: test TP {t['tp']} FN {t['fn']} FP {t['fp']} TN {t['tn']} | held-out styles TP {ho['tp']} FN {ho['fn']} (vs same humans FP {ho['fp']} TN {ho['tn']}) | session-level test acc {s['eval']['session_test']['acc']:.3f}, held-out {s['eval']['session_heldout']['acc']:.3f}")
-(TUNE / 'REPORT.md').write_text('\n'.join(report) + '\n')
-(TUNE / 'summary.json').write_text(json.dumps({k: {kk: vv for kk, vv in v.items() if kk != 'spec'} for k, v in summary.items()}, indent=1))
+(TUNE / f'REPORT{SFX}.md').write_text('\n'.join(report) + '\n')
+(TUNE / f'summary{SFX}.json').write_text(json.dumps({k: {kk: vv for kk, vv in v.items() if kk != 'spec'} for k, v in summary.items()}, indent=1))
 # RUNS.md
 runs = [json.loads(l) for l in RUNS.read_text().splitlines()]
-md = ["| # | stage | cfg | val log-loss | val AUC | test AUC | held-out AUC | held-out TPR | nonzero |", "|---|---|---|---|---|---|---|---|---|"]
+md = ["| # | stage | cfg | val log-loss | val AUC | test AUC | real-human FPR@0.5 | held-out AUC | held-out TPR | nonzero |", "|---|---|---|---|---|---|---|---|---|---|"]
 for i, r_ in enumerate(runs):
-    md.append(f"| {i} | {r_['stage']} | `{json.dumps(r_['cfg'])}` | {r_['val_logloss']:.4f} | {r_['val_auc']:.4f} | {r_['test_auc']:.4f} | {r_['heldout_auc']:.4f} | {r_['heldout_tpr']:.3f} | {r_['nonzero']} |")
-(TUNE / 'RUNS.md').write_text('# All tuning runs\n\n' + '\n'.join(md) + '\n')
+    rf_ = r_.get('real_fpr'); rf_ = f"{rf_:.4f}" if rf_ is not None else '-'
+    md.append(f"| {i} | {r_['stage']} | `{json.dumps(r_['cfg'])}` | {r_['val_logloss']:.4f} | {r_['val_auc']:.4f} | {r_['test_auc']:.4f} | {rf_} | {r_['heldout_auc']:.4f} | {r_['heldout_tpr']:.3f} | {r_['nonzero']} |")
+(TUNE / f'RUNS{SFX}.md').write_text('# All tuning runs\n\n' + '\n'.join(md) + '\n')
 if '--no-write' not in sys.argv:
     write_weights_ts(summary[ship]['spec'], note=f'tune/tune.py stage {ship}: {summary[ship]["note"]}')
     print('wrote src/weights.ts')
-print((TUNE / 'REPORT.md').read_text())
+print((TUNE / f'REPORT{SFX}.md').read_text())

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>motorprint bench</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#fafafa;color:#222}
+  header{background:#234;color:#fff;padding:12px 24px;display:flex;gap:18px;align-items:center}
+  header a{color:#cde;text-decoration:none}
+  main{max-width:760px;margin:24px auto;padding:0 24px}
+  .task{display:none}.task.on{display:block}
+  label{display:block;margin:12px 0 4px}
+  input,textarea,select{font:inherit;padding:8px;width:100%;box-sizing:border-box;border:1px solid #aaa;border-radius:4px}
+  textarea{height:90px} button{font:inherit;padding:10px 22px;margin-top:16px;border:0;border-radius:4px;background:#2563eb;color:#fff;cursor:pointer}
+  .row{display:flex;gap:12px}.row>*{flex:1}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:#fff;border:1px solid #ddd;border-radius:6px;padding:14px}
+  .card a{font-weight:600}
+  article p{margin:0 0 18px} #results li{margin:10px 0} #status{color:#080;margin-top:10px;min-height:1.5em}
+</style></head>
+<body>
+<header><strong>Acme Store</strong><a id="nav-home" href="#home">Home</a><a id="nav-products" href="#products">Products</a><a id="nav-help" href="#help">Help</a><a id="nav-contact" href="#contact">Contact</a></header>
+<main>
+  <!-- form fill -->
+  <section class="task" id="t-form"><h2>Create your account</h2>
+    <div class="row"><div><label for="first">First name</label><input id="first" autocomplete="off"></div>
+    <div><label for="last">Last name</label><input id="last" autocomplete="off"></div></div>
+    <label for="email">Email</label><input id="email" autocomplete="off">
+    <label for="country">Country</label><select id="country"><option value="">Choose…</option><option>Australia</option><option>Canada</option><option>Germany</option><option>India</option><option>Japan</option><option>United States</option></select>
+    <label for="msg">How did you hear about us?</label><textarea id="msg"></textarea>
+    <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="agree" style="width:auto"> I agree to the terms</label>
+    <button id="submit">Create account</button><div id="status"></div>
+  </section>
+  <!-- click-through navigation -->
+  <section class="task" id="t-nav"><h2 id="nav-title">Home</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+  <!-- reading with scrolling -->
+  <section class="task" id="t-read"><h2>Shipping and returns</h2><article id="article"></article><button id="read-done">Back to top</button></section>
+  <!-- search -->
+  <section class="task" id="t-search"><h2>Search products</h2>
+    <div class="row"><input id="q" placeholder="Search…" autocomplete="off"><button id="go" style="flex:0 0 auto;margin-top:0">Search</button></div>
+    <ol id="results"></ol><div id="picked"></div>
+  </section>
+</main>
+<script src="bench.js"></script>
+</body></html>

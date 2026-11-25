@@ -45,9 +45,11 @@ const SEG_GAP_MS = 150;
  * Turn a window of events into a fixed-length feature vector.
  * Pure function, shared by training (Node) and inference (browser).
  */
-export function extractFeatures(evs: Ev[], windowMs = 3000): number[] {
+export function extractFeatures(evsIn: Ev[], windowMs = 3000): number[] {
   const f = new Array<number>(N_FEATURES).fill(0);
-  if (!evs.length) return f;
+  if (!evsIn.length) return f;
+  // Quantise to 1 ms: browsers differ (Chrome 0.1 ms / 5 us, Firefox and Safari 1 ms) and so do datasets.
+  const evs = evsIn.map((e) => (e.t % 1 === 0 ? e : { ...e, t: Math.round(e.t) }));
   const set = (name: (typeof FEATURE_NAMES)[number], v: number) => {
     f[FEATURE_NAMES.indexOf(name)] = Number.isFinite(v) ? v : 0;
   };
