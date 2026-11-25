@@ -1,0 +1,675 @@
+{
+ "model_thr": 0.5,
+ "n_bot_sessions": 3000,
+ "n_human_segments_test": 2547,
+ "tools": {
+  "ghost-cursor": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 3781,
+   "median_dur_s": 5.722,
+   "webdriver_rate": 0.0,
+   "window_det": 0.565987833906374,
+   "session_det": 0.62,
+   "window_tpr_fpr1": 0.6371330335889976,
+   "window_tpr_fpr01": 0.5300185136207353,
+   "session_tpr_fpr1": 0.75,
+   "session_tpr_fpr01": 0.56,
+   "session_tpr_worst1": 0.61,
+   "window_auc": 0.9627802995847734,
+   "session_auc": 0.983647428347075,
+   "ttd_median_s": 3.0,
+   "det_within_2s": 0.15,
+   "det_within_5s": 0.6133333333333333,
+   "session_det_by_task": {
+    "form": 1.0,
+    "nav": 0.28,
+    "read": 0.2,
+    "search": 1.0
+   }
+  },
+  "puppeteer-stealth": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 588,
+   "median_dur_s": 0.4625,
+   "webdriver_rate": 0.0,
+   "window_det": 0.2568027210884354,
+   "session_det": 0.5033333333333333,
+   "window_tpr_fpr1": 0.36054421768707484,
+   "window_tpr_fpr01": 0.22789115646258504,
+   "session_tpr_fpr1": 0.5166666666666667,
+   "session_tpr_fpr01": 0.4266666666666667,
+   "session_tpr_worst1": 0.49333333333333335,
+   "window_auc": 0.8797410972940811,
+   "session_auc": 0.9515639314225887,
+   "ttd_median_s": 0.5,
+   "det_within_2s": 0.5033333333333333,
+   "det_within_5s": 0.5033333333333333,
+   "session_det_by_task": {
+    "form": 0.9866666666666667,
+    "nav": 0.08,
+    "read": 0.0,
+    "search": 0.9466666666666667
+   }
+  },
+  "playwright-stealth": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 591,
+   "median_dur_s": 0.3965,
+   "webdriver_rate": 0.0,
+   "window_det": 0.2673434856175973,
+   "session_det": 0.5266666666666666,
+   "window_tpr_fpr1": 0.3739424703891709,
+   "window_tpr_fpr01": 0.23857868020304568,
+   "session_tpr_fpr1": 0.5433333333333333,
+   "session_tpr_fpr01": 0.47,
+   "session_tpr_worst1": 0.5233333333333333,
+   "window_auc": 0.883719479315371,
+   "session_auc": 0.9527483313702395,
+   "ttd_median_s": 0.5,
+   "det_within_2s": 0.5266666666666666,
+   "det_within_5s": 0.5266666666666666,
+   "session_det_by_task": {
+    "form": 1.0,
+    "nav": 0.18666666666666668,
+    "read": 0.0,
+    "search": 0.92
+   }
+  },
+  "undetected-chromedriver": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 656,
+   "median_dur_s": 0.6685,
+   "webdriver_rate": 0.0,
+   "window_det": 0.22713414634146342,
+   "session_det": 0.38,
+   "window_tpr_fpr1": 0.3673780487804878,
+   "window_tpr_fpr01": 0.1875,
+   "session_tpr_fpr1": 0.4633333333333333,
+   "session_tpr_fpr01": 0.2833333333333333,
+   "session_tpr_worst1": 0.37333333333333335,
+   "window_auc": 0.8784377574203053,
+   "session_auc": 0.9433804475853946,
+   "ttd_median_s": 0.5,
+   "det_within_2s": 0.38,
+   "det_within_5s": 0.38,
+   "session_det_by_task": {
+    "form": 1.0,
+    "nav": 0.26666666666666666,
+    "read": 0.0,
+    "search": 0.25333333333333335
+   }
+  },
+  "nodriver": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 1083,
+   "median_dur_s": 1.71,
+   "webdriver_rate": 0.0,
+   "window_det": 0.5124653739612188,
+   "session_det": 0.5333333333333333,
+   "window_tpr_fpr1": 0.5992613111726686,
+   "window_tpr_fpr01": 0.43213296398891965,
+   "session_tpr_fpr1": 0.65,
+   "session_tpr_fpr01": 0.4033333333333333,
+   "session_tpr_worst1": 0.52,
+   "window_auc": 0.9518992795824864,
+   "session_auc": 0.9633438031671248,
+   "ttd_median_s": 0.5,
+   "det_within_2s": 0.53,
+   "det_within_5s": 0.5333333333333333,
+   "session_det_by_task": {
+    "form": 0.9866666666666667,
+    "nav": 0.17333333333333334,
+    "read": 0.0,
+    "search": 0.9733333333333334
+   }
+  },
+  "botasaurus-human": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 3609,
+   "median_dur_s": 4.7795,
+   "webdriver_rate": 0.0,
+   "window_det": 0.09559434746467166,
+   "session_det": 0.16666666666666666,
+   "window_tpr_fpr1": 0.21224715987808257,
+   "window_tpr_fpr01": 0.05763369354391798,
+   "session_tpr_fpr1": 0.3566666666666667,
+   "session_tpr_fpr01": 0.05,
+   "session_tpr_worst1": 0.12666666666666668,
+   "window_auc": 0.8510005281352919,
+   "session_auc": 0.8974780787854992,
+   "ttd_median_s": 3.0,
+   "det_within_2s": 0.02666666666666667,
+   "det_within_5s": 0.13666666666666666,
+   "session_det_by_task": {
+    "form": 0.18666666666666668,
+    "nav": 0.0,
+    "read": 0.13333333333333333,
+    "search": 0.3466666666666667
+   }
+  },
+  "pyautogui": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 1826,
+   "median_dur_s": 2.702,
+   "webdriver_rate": 0.0,
+   "window_det": 0.6621029572836802,
+   "session_det": 0.75,
+   "window_tpr_fpr1": 0.6708652792990142,
+   "window_tpr_fpr01": 0.6429353778751369,
+   "session_tpr_fpr1": 0.75,
+   "session_tpr_fpr01": 0.7466666666666667,
+   "session_tpr_worst1": 0.75,
+   "window_auc": 0.882762727384177,
+   "session_auc": 0.9770304933909174,
+   "ttd_median_s": 1.5,
+   "det_within_2s": 0.7333333333333333,
+   "det_within_5s": 0.75,
+   "session_det_by_task": {
+    "form": 1.0,
+    "nav": 1.0,
+    "read": 0.0,
+    "search": 1.0
+   }
+  },
+  "playwright-mcp": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 1274,
+   "median_dur_s": 8.9895,
+   "webdriver_rate": 0.0,
+   "window_det": 0.30847723704866564,
+   "session_det": 0.4633333333333333,
+   "window_tpr_fpr1": 0.41836734693877553,
+   "window_tpr_fpr01": 0.29277864992150704,
+   "session_tpr_fpr1": 0.5866666666666667,
+   "session_tpr_fpr01": 0.44,
+   "session_tpr_worst1": 0.45666666666666667,
+   "window_auc": 0.9779257098945962,
+   "session_auc": 0.950223792697291,
+   "ttd_median_s": 9.0,
+   "det_within_2s": 0.06666666666666667,
+   "det_within_5s": 0.17333333333333334,
+   "session_det_by_task": {
+    "form": 0.8666666666666667,
+    "nav": 0.0,
+    "read": 0.9733333333333334,
+    "search": 0.013333333333333334
+   }
+  },
+  "replay-cdp": {
+   "sessions": 300,
+   "no_windows": 0,
+   "windows": 4436,
+   "median_dur_s": 9.717,
+   "webdriver_rate": 0.0,
+   "window_det": 0.012398557258791704,
+   "session_det": 0.016666666666666666,
+   "window_tpr_fpr1": 0.024346257889990983,
+   "window_tpr_fpr01": 0.008340847610459874,
+   "session_tpr_fpr1": 0.03,
+   "session_tpr_fpr01": 0.006666666666666667,
+   "session_tpr_worst1": 0.013333333333333334,
+   "window_auc": 0.5478969524668856,
+   "session_auc": 0.544383588535532,
+   "ttd_median_s": 4.5,
+   "det_within_2s": 0.0,
+   "det_within_5s": 0.01,
+   "session_det_by_task": {
+    "form": 0.009259259259259259,
+    "read": 0.020833333333333332
+   }
+  },
+  "replay-xdotool": {
+   "sessions": 300,
+   "no_windows": 5,
+   "windows": 4802,
+   "median_dur_s": 9.715,
+   "webdriver_rate": 0.0,
+   "window_det": 0.1709704289879217,
+   "session_det": 0.28,
+   "window_tpr_fpr1": 0.19700124947938358,
+   "window_tpr_fpr01": 0.15993336109954187,
+   "session_tpr_fpr1": 0.2833333333333333,
+   "session_tpr_fpr01": 0.27666666666666667,
+   "session_tpr_worst1": 0.27666666666666667,
+   "window_auc": 0.639508643269353,
+   "session_auc": 0.6394738908519827,
+   "ttd_median_s": 0.5,
+   "det_within_2s": 0.27666666666666667,
+   "det_within_5s": 0.27666666666666667,
+   "session_det_by_task": {
+    "form": 0.3888888888888889,
+    "read": 0.21875
+   }
+  }
+ },
+ "detectors": {
+  "motorprint model @ shipped thr": {
+   "tools": {
+    "ghost-cursor": 0.62,
+    "puppeteer-stealth": 0.5033333333333333,
+    "playwright-stealth": 0.5266666666666666,
+    "undetected-chromedriver": 0.38,
+    "nodriver": 0.5333333333333333,
+    "botasaurus-human": 0.16666666666666666,
+    "pyautogui": 0.75,
+    "playwright-mcp": 0.4633333333333333,
+    "replay-cdp": 0.016666666666666666,
+    "replay-xdotool": 0.28
+   },
+   "tools_window": {
+    "ghost-cursor": 0.565987833906374,
+    "puppeteer-stealth": 0.2568027210884354,
+    "playwright-stealth": 0.2673434856175973,
+    "undetected-chromedriver": 0.22713414634146342,
+    "nodriver": 0.5124653739612188,
+    "botasaurus-human": 0.09559434746467166,
+    "pyautogui": 0.6621029572836802,
+    "playwright-mcp": 0.30847723704866564,
+    "replay-cdp": 0.012398557258791704,
+    "replay-xdotool": 0.1709704289879217
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0013245033112582781,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.004940119760479042,
+    "keyrecs": 0.006078147612156295,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.002079002079002079,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.002325581395348837,
+    "keyrecs": 0.014492753623188406,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.014492753623188406,
+   "worst_window_fpr": 0.006078147612156295,
+   "pooled_window_fpr": 0.0027873998701017535,
+   "pooled_session_fpr": 0.0039261876717707105,
+   "mean_tool_det": 0.42400000000000004,
+   "bench_score": 0.0
+  },
+  "navigator.webdriver": {
+   "tools": {
+    "ghost-cursor": 0.0,
+    "puppeteer-stealth": 0.0,
+    "playwright-stealth": 0.0,
+    "undetected-chromedriver": 0.0,
+    "nodriver": 0.0,
+    "botasaurus-human": 0.0,
+    "pyautogui": 0.0,
+    "playwright-mcp": 0.0,
+    "replay-cdp": 0.0,
+    "replay-xdotool": 0.0
+   },
+   "tools_window": {
+    "ghost-cursor": 0.0,
+    "puppeteer-stealth": 0.0,
+    "playwright-stealth": 0.0,
+    "undetected-chromedriver": 0.0,
+    "nodriver": 0.0,
+    "botasaurus-human": 0.0,
+    "pyautogui": 0.0,
+    "playwright-mcp": 0.0,
+    "replay-cdp": 0.0,
+    "replay-xdotool": 0.0
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.0,
+   "worst_window_fpr": 0.0,
+   "pooled_window_fpr": 0.0,
+   "pooled_session_fpr": 0.0,
+   "mean_tool_det": 0.0,
+   "bench_score": 0.0
+  },
+  "isTrusted check": {
+   "tools": {
+    "ghost-cursor": 0.25,
+    "puppeteer-stealth": 0.25,
+    "playwright-stealth": 0.25,
+    "undetected-chromedriver": 0.25,
+    "nodriver": 0.0,
+    "botasaurus-human": 0.0,
+    "pyautogui": 0.0,
+    "playwright-mcp": 0.21333333333333335,
+    "replay-cdp": 0.0,
+    "replay-xdotool": 0.0
+   },
+   "tools_window": {
+    "ghost-cursor": 0.10975932293044169,
+    "puppeteer-stealth": 0.12755102040816327,
+    "playwright-stealth": 0.12690355329949238,
+    "undetected-chromedriver": 0.16615853658536586,
+    "nodriver": 0.0,
+    "botasaurus-human": 0.0,
+    "pyautogui": 0.0,
+    "playwright-mcp": 0.05023547880690738,
+    "replay-cdp": 0.0,
+    "replay-xdotool": 0.0
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.0,
+   "worst_window_fpr": 0.0,
+   "pooled_window_fpr": 0.0,
+   "pooled_session_fpr": 0.0,
+   "mean_tool_det": 0.12133333333333333,
+   "bench_score": 0.12133333333333333
+  },
+  "event-rate rules (all 4)": {
+   "tools": {
+    "ghost-cursor": 0.6666666666666666,
+    "puppeteer-stealth": 0.6033333333333334,
+    "playwright-stealth": 0.6133333333333333,
+    "undetected-chromedriver": 0.5533333333333333,
+    "nodriver": 0.5,
+    "botasaurus-human": 0.67,
+    "pyautogui": 0.2966666666666667,
+    "playwright-mcp": 0.5333333333333333,
+    "replay-cdp": 0.12333333333333334,
+    "replay-xdotool": 0.10333333333333333
+   },
+   "tools_window": {
+    "ghost-cursor": 0.4829410208939434,
+    "puppeteer-stealth": 0.36054421768707484,
+    "playwright-stealth": 0.37225042301184436,
+    "undetected-chromedriver": 0.3201219512195122,
+    "nodriver": 0.4182825484764543,
+    "botasaurus-human": 0.5242449431975617,
+    "pyautogui": 0.21412924424972618,
+    "playwright-mcp": 0.22684458398744112,
+    "replay-cdp": 0.024346257889990983,
+    "replay-xdotool": 0.016867971678467306
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0015137180700094607,
+    "boun": 0.09670131043831902,
+    "cmu": 0.0,
+    "dux": 0.03832335329341317,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.010395010395010396,
+    "boun": 0.3880597014925373,
+    "cmu": 0.0,
+    "dux": 0.313953488372093,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.3880597014925373,
+   "worst_window_fpr": 0.09670131043831902,
+   "pooled_window_fpr": 0.012935700368045032,
+   "pooled_session_fpr": 0.0855908912446015,
+   "mean_tool_det": 0.4663333333333333,
+   "bench_score": 0.0
+  },
+  "event-rate rules (conservative: 3, no press-without-move)": {
+   "tools": {
+    "ghost-cursor": 0.5,
+    "puppeteer-stealth": 0.5,
+    "playwright-stealth": 0.5,
+    "undetected-chromedriver": 0.5,
+    "nodriver": 0.5,
+    "botasaurus-human": 0.5,
+    "pyautogui": 0.25,
+    "playwright-mcp": 0.25,
+    "replay-cdp": 0.006666666666666667,
+    "replay-xdotool": 0.0
+   },
+   "tools_window": {
+    "ghost-cursor": 0.46918804549061094,
+    "puppeteer-stealth": 0.25510204081632654,
+    "playwright-stealth": 0.25380710659898476,
+    "undetected-chromedriver": 0.28353658536585363,
+    "nodriver": 0.4182825484764543,
+    "botasaurus-human": 0.5087281795511222,
+    "pyautogui": 0.20536692223439212,
+    "playwright-mcp": 0.12244897959183673,
+    "replay-cdp": 0.0009017132551848512,
+    "replay-xdotool": 0.0
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0007485029940119761,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.009302325581395349,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.009302325581395349,
+   "worst_window_fpr": 0.0007485029940119761,
+   "pooled_window_fpr": 0.00013531067330591038,
+   "pooled_session_fpr": 0.0015704750687082843,
+   "mean_tool_det": 0.3506666666666667,
+   "bench_score": 0.3506666666666667
+  },
+  "cheap checks: webdriver OR isTrusted OR conservative rules": {
+   "tools": {
+    "ghost-cursor": 0.5,
+    "puppeteer-stealth": 0.5,
+    "playwright-stealth": 0.5,
+    "undetected-chromedriver": 0.5,
+    "nodriver": 0.5,
+    "botasaurus-human": 0.5,
+    "pyautogui": 0.25,
+    "playwright-mcp": 0.25,
+    "replay-cdp": 0.006666666666666667,
+    "replay-xdotool": 0.0
+   },
+   "tools_window": {
+    "ghost-cursor": 0.4694525257868289,
+    "puppeteer-stealth": 0.25510204081632654,
+    "playwright-stealth": 0.25380710659898476,
+    "undetected-chromedriver": 0.28353658536585363,
+    "nodriver": 0.4182825484764543,
+    "botasaurus-human": 0.5087281795511222,
+    "pyautogui": 0.20536692223439212,
+    "playwright-mcp": 0.12244897959183673,
+    "replay-cdp": 0.0009017132551848512,
+    "replay-xdotool": 0.0
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0007485029940119761,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.0,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.009302325581395349,
+    "keyrecs": 0.0,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.009302325581395349,
+   "worst_window_fpr": 0.0007485029940119761,
+   "pooled_window_fpr": 0.00013531067330591038,
+   "pooled_session_fpr": 0.0015704750687082843,
+   "mean_tool_det": 0.3506666666666667,
+   "bench_score": 0.3506666666666667
+  },
+  "model OR cheap checks": {
+   "tools": {
+    "ghost-cursor": 0.62,
+    "puppeteer-stealth": 0.52,
+    "playwright-stealth": 0.5466666666666666,
+    "undetected-chromedriver": 0.5666666666666667,
+    "nodriver": 0.5433333333333333,
+    "botasaurus-human": 0.5333333333333333,
+    "pyautogui": 0.75,
+    "playwright-mcp": 0.49666666666666665,
+    "replay-cdp": 0.02,
+    "replay-xdotool": 0.28
+   },
+   "tools_window": {
+    "ghost-cursor": 0.5829145728643216,
+    "puppeteer-stealth": 0.2653061224489796,
+    "playwright-stealth": 0.27749576988155666,
+    "undetected-chromedriver": 0.31402439024390244,
+    "nodriver": 0.5503231763619575,
+    "botasaurus-human": 0.5211970074812967,
+    "pyautogui": 0.6998904709748083,
+    "playwright-mcp": 0.3673469387755102,
+    "replay-cdp": 0.012623985572587917,
+    "replay-xdotool": 0.1709704289879217
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0013245033112582781,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.005688622754491018,
+    "keyrecs": 0.006078147612156295,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.002079002079002079,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.011627906976744186,
+    "keyrecs": 0.014492753623188406,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.014492753623188406,
+   "worst_window_fpr": 0.006078147612156295,
+   "pooled_window_fpr": 0.002922710543407664,
+   "pooled_session_fpr": 0.005496662740478995,
+   "mean_tool_det": 0.4876666666666666,
+   "bench_score": 0.0
+  },
+  "motorprint model @ worst-group-1% thr (0.550)": {
+   "tools": {
+    "ghost-cursor": 0.61,
+    "puppeteer-stealth": 0.49333333333333335,
+    "playwright-stealth": 0.5233333333333333,
+    "undetected-chromedriver": 0.37333333333333335,
+    "nodriver": 0.52,
+    "botasaurus-human": 0.12666666666666668,
+    "pyautogui": 0.75,
+    "playwright-mcp": 0.45666666666666667,
+    "replay-cdp": 0.013333333333333334,
+    "replay-xdotool": 0.27666666666666667
+   },
+   "human_fpr_by_dataset_session": {
+    "adserp": 0.002079002079002079,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0,
+    "keyrecs": 0.010869565217391304,
+    "mousetask": 0.0
+   },
+   "human_fpr_by_dataset_window": {
+    "adserp": 0.0007568590350047304,
+    "boun": 0.0,
+    "cmu": 0.0,
+    "dux": 0.0038922155688622755,
+    "keyrecs": 0.004920405209840811,
+    "mousetask": 0.0
+   },
+   "worst_session_fpr": 0.010869565217391304,
+   "worst_window_fpr": 0.004920405209840811,
+   "pooled_window_fpr": 0.002192032907555748,
+   "pooled_session_fpr": 0.0027483313702394976,
+   "mean_tool_det": 0.41433333333333333,
+   "bench_score": 0.41433333333333333
+  }
+ },
+ "humans": {},
+ "thresholds": {
+  "window_fpr1": 0.10453564097526251,
+  "window_fpr01": 0.7576246588163681,
+  "session_fpr1": 0.1656648019530735,
+  "session_fpr01": 0.7923311395414805,
+  "summary_worst_group_1pct": 0.5498304461073023
+ },
+ "lodo": {
+  "adserp": {
+   "users": 47,
+   "segments": 2785,
+   "window_fpr": 0.2557861371927516,
+   "session_fpr": 0.4703770197486535
+  },
+  "boun": {
+   "users": 19,
+   "segments": 3742,
+   "window_fpr": 0.03263677412580069,
+   "session_fpr": 0.047300908605024054
+  },
+  "cmu": {
+   "users": 50,
+   "segments": 1049,
+   "window_fpr": 0.0,
+   "session_fpr": 0.0
+  },
+  "dux": {
+   "users": 36,
+   "segments": 3266,
+   "window_fpr": 0.047936717749597256,
+   "session_fpr": 0.10134721371708512
+  },
+  "keyrecs": {
+   "users": 95,
+   "segments": 2325,
+   "window_fpr": 0.018763592614872055,
+   "session_fpr": 0.03096774193548387
+  },
+  "mousetask": {
+   "users": 174,
+   "segments": 3423,
+   "window_fpr": 2.2180818028568892e-05,
+   "session_fpr": 0.0
+  }
+ },
+ "lodo_worst_window_fpr": 0.2557861371927516,
+ "lodo_worst_session_fpr": 0.4703770197486535
+}
