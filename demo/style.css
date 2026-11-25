@@ -1,0 +1,15 @@
+:root { color-scheme: dark; --bg:#0d0f14; --fg:#e8ebf2; --mut:#8b93a7; --acc:#7cf; --bad:#ff5d6c; --ok:#3ddc97; }
+* { box-sizing: border-box; }
+body { margin:0; font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--fg); }
+header { padding: 20px 28px; border-bottom: 1px solid #222838; }
+h1 { margin: 0 0 6px; font-size: 22px; }
+p { color: var(--mut); margin: 4px 0; }
+.row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+button { background:#1a2030; color:var(--fg); border:1px solid #2c3550; border-radius:8px; padding:8px 14px; font:inherit; cursor:pointer; }
+button:hover { border-color: var(--acc); }
+button.hot { background:#18406a; border-color:var(--acc); }
+main { padding: 20px 28px; }
+.grid { display:flex; flex-wrap:wrap; gap:18px; margin: 18px 0; }
+.tgt { height: 44px; }
+.type input, .type textarea { width: 100%; max-width: 640px; display:block; margin:8px 0; padding:10px; border-radius:8px; border:1px solid #2c3550; background:#121725; color:var(--fg); font:inherit; }
+.long p { padding: 18px 0; border-bottom: 1px dashed #1c2232; }

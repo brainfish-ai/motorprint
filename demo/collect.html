@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>motorprint: collect a session</title>
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body class="collect">
+<header>
+  <h1>Record a human session</h1>
+  <p>Click the highlighted button, type the sentence, scroll down and repeat. Everything stays in this tab until you press Download or Save.
+     Only timings, coordinates and key codes are stored, never what you type.</p>
+  <div class="row">
+    <span id="status">0 events</span>
+    <label><input type="checkbox" id="isbot" /> this is a bot session</label>
+    <button id="dl">Download JSON</button>
+    <button id="save">Save to local server</button>
+    <button id="reset">Reset</button>
+  </div>
+</header>
+<main>
+  <section class="grid" id="grid"></section>
+  <section class="type">
+    <p id="sentence">the quick brown fox jumps over the lazy dog</p>
+    <input id="field" autocomplete="off" placeholder="type the sentence here" />
+    <textarea id="notes" placeholder="optional notes"></textarea>
+  </section>
+  <section class="long" id="long"></section>
+  <section class="grid" id="grid2"></section>
+</main>
+<script type="module" src="./collect.ts"></script>
+</body>
+</html>

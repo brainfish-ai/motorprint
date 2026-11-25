@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>motorprint: on-device bot detection demo</title>
+<link rel="stylesheet" href="./style.css" />
+<link rel="stylesheet" href="./demo.css" />
+</head>
+<body>
+<header>
+  <h1>motorprint <small>on-device bot detection</small></h1>
+  <p>Move the mouse, click the buttons, type and scroll. A tiny neural net (<span id="msize"></span>) scores every 3 second window of your input dynamics, right here in the tab. Nothing is sent anywhere.</p>
+</header>
+<main class="layout">
+  <section class="panel gaugebox">
+    <svg viewBox="0 0 200 120" class="gauge">
+      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#ff5d6c"/></linearGradient></defs>
+      <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#1e2433" stroke-width="16" stroke-linecap="round"/>
+      <path id="arc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#g)" stroke-width="16" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+      <line id="needle" x1="100" y1="110" x2="100" y2="40" stroke="#e8ebf2" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="100" cy="110" r="6" fill="#e8ebf2"/>
+    </svg>
+    <div class="score"><span id="score">--</span><small>bot score</small></div>
+    <div id="verdict" class="verdict wait">waiting for input</div>
+    <div class="meta"><span id="windows">0 windows</span> · <span id="raw">raw --</span> · <span id="inf">-- ms</span></div>
+    <canvas id="spark" width="360" height="60"></canvas>
+  </section>
+  <section class="panel play">
+    <h2>Playground</h2>
+    <div class="grid" id="grid"></div>
+    <input id="field" autocomplete="off" placeholder="type anything here" />
+    <div class="scrollbox" id="scrollbox"></div>
+  </section>
+  <section class="panel feats">
+    <h2>Feature readout <small>(latest window)</small></h2>
+    <table id="ftable"></table>
+  </section>
+</main>
+<footer><a href="./collect.html">Record a real session for training</a></footer>
+<script type="module" src="./main.ts"></script>
+</body>
+</html>

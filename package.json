@@ -1,0 +1,61 @@
+{
+  "name": "motorprint",
+  "version": "0.1.0",
+  "description": "Tiny on-device bot vs human detector for the browser. Reads pointer, click, scroll and typing dynamics. No server, no LLM.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    },
+    "./react": {
+      "types": "./lib/react.d.ts",
+      "import": "./lib/react.js"
+    }
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": ">=17"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "build:lib": "tsc -p tsconfig.lib.json",
+    "demo:dev": "vite demo",
+    "demo:build": "vite build demo --outDir ../demo-site --emptyOutDir",
+    "demo:serve": "vite preview demo --outDir ../demo-site --port 4173",
+    "data:humans": "tsx data/gen-humans.ts --n 1500 --seed 1",
+    "data:bots": "tsx data/gen-bots.ts --n 40 --conc 6 && xvfb-run -a tsx data/gen-bots.ts --n 12 --conc 4 --headed",
+    "data:replay": "tsx data/gen-humans.ts --n 40 --seed 99 && mv data/sessions/human/synthetic-seed99.jsonl data/sessions/replay-src.jsonl && tsx data/replay-humans.ts --n 30",
+    "featurize": "tsx train/featurize.ts",
+    "train": "python3 train/train.py",
+    "tune": "bash tune/run.sh",
+    "demo:bot": "tsx tools/demo-run.ts",
+    "collect:server": "node tools/collect-server.mjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.7",
+    "@types/react": "^19.3.1",
+    "@vitejs/plugin-react": "^6.3.0",
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.65.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}
