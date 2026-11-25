@@ -54,7 +54,7 @@ npm run demo:bot                 # Playwright drives the built demo: a replayed 
 
 1. **Recorder** (`src/recorder.ts`) listens passively, in the capture phase, to `mousemove`, `mousedown/up`, `click`, `keydown/up` (it stores the key *code* only, never the text), `input`, `wheel` and `scroll`. It keeps about 6 s of events.
 2. **Features** (`src/features.ts`, 38 per window). These include speed, acceleration and jerk; straightness and maximum lateral deviation of each movement segment; where the speed peaks and how much it slows at the end; turn-angle mean, entropy and the share of zero turns; step regularity; event timestamp regularity (interval CV, mode share, sub-4 ms bursts); pause share; click offset from the target centre; press duration and its CV; movement just before a press; clicks without a press; inter-key interval and hold time with their CVs; input with no keypress; wheel delta and timing regularity; scroll with no input; the untrusted-event share; and event rate.
-3. **Model** (`src/model.ts`, `src/weights.ts`). It's a 38 → 32 → 16 → 1 ReLU MLP with 80% of its weights pruned (398 non-zero) and per-row int8 weights stored as base64. Two features (`click_offset`, `wheel_dy_cv`) are switched off (`off` in the spec) because no real-human dataset records target rectangles or wheel deltas. The runtime is about 50 lines of TypeScript.
+3. **Model** (`src/model.ts`, `src/weights.ts`). It's a 38 → 32 → 16 → 1 ReLU MLP with 80% of its weights pruned (398 non-zero) and per-row int8 weights stored as base64. One unit was written by hand rather than trained ([WSP.md](WSP.md)). Two features (`click_offset`, `wheel_dy_cv`) are switched off (`off` in the spec) because no real-human dataset records target rectangles or wheel deltas. The runtime is about 50 lines of TypeScript.
 4. **Smoothing.** An EMA over window log-odds, so a single odd window does not flip the verdict.
 
 ## Data
@@ -70,16 +70,16 @@ Raw data is downloaded to `data/external/raw/` and is not committed. Real humans
 
 ## Results (window level, held-out users, threshold 0.5)
 
-| | old model (synthetic humans) | **shipped** (real humans, 32-16, 80% pruned, int8) |
+| | old model (synthetic humans) | **shipped** (real humans, 32-16, 80% pruned, int8, + 1 hand-programmed unit) |
 |---|---|---|
 | False positives on held-out **real** users (3 s windows) | 16.2% | **0.33%** (82 of 25,168) |
 | False positives, session level (majority of windows flagged) | 5.31% | **0.00%** of 904 sessions |
 | Per dataset FPR: adserp / boun / dux / mousetask / keyrecs / cmu | 26.8 / 47.0 / 35.2 / 11.2 / 0.97 / 0% | 0.18 / 0 / 0.51 / 0 / 0.73 / 0% |
 | Test ROC-AUC (train bot styles vs real users) | 0.9812 | 0.9999 |
-| Held-out bot styles ROC-AUC | 0.813 | 0.961 |
-| Flagged: ghost / wind / agent | 0.27 / 0.97 / 0.74 | 0.22 / 0.96 / 0.31 |
-| Replay attack flagged | 0.09 | 0.29 |
-| Model gzipped / library gzipped | 1.07 KB / 4.7 KB | 1.66 KB / 5.4 KB |
+| Held-out bot styles ROC-AUC | 0.813 | 0.973 (0.961 before the hand-programmed unit) |
+| Flagged: ghost / wind / agent | 0.27 / 0.97 / 0.74 | 0.45 / 0.96 / 0.31 |
+| Replay attack flagged | 0.09 | 0.46 |
+| Model gzipped / library gzipped | 1.07 KB / 4.7 KB | 1.72 KB / 5.4 KB |
 
 Adding the synthetic humans to the real ones (`HUMANS=both`, [`tune/REPORT-both.md`](tune/REPORT-both.md)) gives a slightly lower real FPR (0.26% at int8) but transfers worse to unseen bots (held-out AUC 0.925, ghost 0.12), so the shipped model uses real humans only.
 
@@ -87,7 +87,7 @@ Adding the synthetic humans to the real ones (`HUMANS=both`, [`tune/REPORT-both.
 
 The full stage-by-stage tables are in [`tune/REPORT.md`](tune/REPORT.md) (real), [`tune/REPORT-synthetic.md`](tune/REPORT-synthetic.md) and [`tune/REPORT-both.md`](tune/REPORT-both.md).
 
-**What this says.** Classic automation (teleports, linear or eased moves, constant-rate typing, DOM events, programmatic scroll) is trivially separable from real people. WindMouse transfers well (96% flagged). A good humanizer (ghost-cursor style) and agent-style bots mostly get through on single windows (22% and 31%). The old synthetic-only model looked fine on synthetic humans but flagged one in six real windows.
+**What this says.** Classic automation (teleports, linear or eased moves, constant-rate typing, DOM events, programmatic scroll) is trivially separable from real people. WindMouse transfers well (96% flagged). Agent-style bots mostly get through on single windows (31%). Ghost-cursor-style humanizers were caught 22% of the time until one hand-programmed unit (see [WSP.md](WSP.md)) raised that to 45% without changing the real-human false-positive rate. The old synthetic-only model looked fine on synthetic humans but flagged one in six real windows.
 
 ## Limitations (please read)
 
