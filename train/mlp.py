@@ -1,5 +1,5 @@
 """Tiny numpy MLP: training, evaluation, pruning, quantization, export. No dependencies beyond numpy."""
-import json, base64, gzip, hashlib, time
+import json, base64, gzip, hashlib, os, time
 from pathlib import Path
 import numpy as np
 
@@ -8,20 +8,28 @@ TRAIN_STYLES = ['teleport', 'linear', 'eased', 'bezier', 'dom']
 HELDOUT_STYLES = ['ghost', 'wind', 'agent']
 
 
-def load(path=ROOT / 'data' / 'features.json'):
-    d = json.loads(Path(path).read_text())
+FEATURES = Path(os.environ.get('MOTORPRINT_FEATURES', ROOT / 'data' / 'features.json'))
+
+
+def load(path=None, meta=False):
+    d = json.loads(Path(path or FEATURES).read_text())
     X = np.array(d['X'], dtype=np.float64)
     y = np.array(d['y'], dtype=np.float64)
     style = np.array(d['style']); sid = np.array(d['sid'])
+    off = d.get('off', [])
+    if off: X[:, off] = 0.0  # features no human dataset can provide are trained "off"
+    if meta:
+        return d['names'], X, y, style, sid, dict(off=off, user=np.array(d.get('user', d['sid'])), dataset=np.array(d.get('dataset', d['style'])), humans=d.get('humans', 'synthetic'))
     return d['names'], X, y, style, sid
 
 
-def split(style, sid, seed=0):
-    """Session-level split. Held-out bot styles never touch train/val."""
+def split(style, sid, seed=0, group=None):
+    """Group-level split: whole users for real datasets, whole sessions otherwise. Held-out bot styles never touch train/val."""
     rng = np.random.default_rng(seed)
-    uniq = sorted(set(sid.tolist()))
+    g = group if group is not None else sid
+    uniq = sorted(set(g.tolist()))
     r = {s: rng.random() for s in uniq}
-    u = np.array([r[s] for s in sid])
+    u = np.array([r[s] for s in g])
     held = np.isin(style, HELDOUT_STYLES)
     other = ~held & ~np.char.startswith(style.astype(str), 'replay')  # real_* sessions join train/val/test
     tr = other & (u < 0.70)
@@ -140,8 +148,10 @@ def quantize(P, bits):
     return out, codes
 
 
-def export(P, mu, sd, names, bits=32, thr=0.5):
+def export(P, mu, sd, names, bits=32, thr=0.5, off=None):
     layers = []
+    if off:
+        P = [[W.copy(), b.copy()] for W, b in P]; P[0][0][:, off] = 0.0
     _, codes = quantize(P, bits)
     for li, (W, b) in enumerate(P):
         o, i = W.shape
@@ -158,7 +168,31 @@ def export(P, mu, sd, names, bits=32, thr=0.5):
         L = dict(i=int(i), o=int(o), bits=bits, w=base64.b64encode(raw).decode(), b=[float(f'{x:.6g}') for x in b])
         if s is not None: L['s'] = s
         layers.append(L)
-    return dict(v=1, names=list(names), mean=[float(f'{x:.6g}') for x in mu], std=[float(f'{x:.6g}') for x in sd], layers=layers, thr=thr)
+    spec = dict(v=1, names=list(names), mean=[float(f'{x:.6g}') for x in mu], std=[float(f'{x:.6g}') for x in sd], layers=layers, thr=thr)
+    if off: spec['off'] = [int(i) for i in off]
+    return spec
+
+
+def spec_params(spec):
+    """Decode an exported ModelSpec back into numpy params (mirrors src/model.ts)."""
+    P = []
+    for L in spec['layers']:
+        raw = base64.b64decode(L['w']); n = L['i'] * L['o']
+        if L['bits'] == 32: W = np.frombuffer(raw, '<f4')[:n].astype(np.float64)
+        elif L['bits'] == 8: W = np.frombuffer(raw, np.int8)[:n].astype(np.float64)
+        else:
+            b = np.frombuffer(raw, np.uint8); nib = np.empty(len(b) * 2, np.int16); nib[0::2] = b & 15; nib[1::2] = b >> 4
+            W = np.where(nib >= 8, nib - 16, nib)[:n].astype(np.float64)
+        W = W.reshape(L['o'], L['i'])
+        if L['bits'] != 32: W = W * np.array(L['s'])[:, None]
+        P.append([W, np.array(L['b'], dtype=np.float64)])
+    return P
+
+
+def spec_predict(spec, X):
+    Z = np.clip((X - np.array(spec['mean'])) / np.array(spec['std']), -6, 6)
+    for i in spec.get('off', []): Z[:, i] = 0
+    return predict(spec_params(spec), Z)
 
 
 def spec_gz_bytes(spec):
@@ -169,7 +203,7 @@ def nparams(P):
     return int(sum(W.size + b.size for W, b in P)), int(sum((W != 0).sum() + b.size for W, b in P))
 
 
-def evaluate(P, Z, y, style, sid, masks_d, thr=0.5):
+def evaluate(P, Z, y, style, sid, masks_d, thr=0.5, dataset=None):
     """Window-level metrics on test + held-out styles, per-style detection rates, session-level accuracy."""
     p = predict(P, Z)
     tr, va, te, held = masks_d
@@ -184,9 +218,19 @@ def evaluate(P, Z, y, style, sid, masks_d, thr=0.5):
         out['per_style'][s] = dict(n=int(mk.sum()), flagged=float((p[mk] >= thr).mean()), mean_score=float(p[mk].mean()))
     # session level: mean window score per session
     def sess(mask):
-        ids = sorted(set(sid[mask].tolist()))
-        ps = np.array([p[mask & (sid == i)].mean() for i in ids]); ys = np.array([y[mask & (sid == i)][0] for i in ids])
-        return metrics(ys, ps, thr)
+        _, inv = np.unique(sid[mask], return_inverse=True)
+        ps = np.bincount(inv, weights=p[mask]) / np.bincount(inv); ys = np.bincount(inv, weights=y[mask]) / np.bincount(inv)
+        return metrics(np.round(ys), ps, thr)
+    if dataset is not None:
+        out['human_fpr'] = {}
+        for ds in sorted(set(dataset[te & (y == 0)].tolist())):
+            mk = te & (y == 0) & (dataset == ds)
+            out['human_fpr'][ds] = dict(n=int(mk.sum()), fpr=float((p[mk] >= thr).mean()))
+        real = te & (y == 0) & np.char.startswith(style.astype(str), 'real_')
+        if real.any():
+            _, inv = np.unique(sid[real], return_inverse=True)
+            sp = np.bincount(inv, weights=p[real]) / np.bincount(inv)
+            out['real_human_fpr'] = dict(n=int(real.sum()), fpr=float((p[real] >= thr).mean()), sessions=int(len(sp)), session_fpr=float((sp >= thr).mean()))
     rp = style == 'replay'
     if rp.any():
         out['attack_replay'] = dict(n=int(rp.sum()), flagged=float((p[rp] >= thr).mean()), mean_score=float(p[rp].mean()))

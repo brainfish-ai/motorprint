@@ -19,6 +19,8 @@ export interface ModelSpec {
   layers: LayerSpec[];
   /** decision threshold on the 0..1 score */
   thr?: number;
+  /** feature indices the model was trained without (they are neutralised at inference) */
+  off?: number[];
 }
 
 function b64(s: string): Uint8Array {
@@ -50,10 +52,11 @@ export function createModel(spec: ModelSpec): Model {
   const W = spec.layers.map(decode);
   const bufs = spec.layers.map((l) => new Float32Array(l.o));
   const z = new Float32Array(spec.mean.length);
+  const off = new Set(spec.off ?? []);
   return {
     spec,
     predict(x) {
-      for (let i = 0; i < z.length; i++) z[i] = Math.max(-6, Math.min(6, (x[i] - spec.mean[i]) / spec.std[i]));
+      for (let i = 0; i < z.length; i++) z[i] = off.has(i) ? 0 : Math.max(-6, Math.min(6, (x[i] - spec.mean[i]) / spec.std[i]));
       let inp: Float32Array = z;
       for (let li = 0; li < spec.layers.length; li++) {
         const l = spec.layers[li], w = W[li], out = bufs[li], last = li === spec.layers.length - 1;

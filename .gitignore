@@ -1,7 +1,11 @@
 node_modules/
 lib/
 demo-site/
-data/features.json
+data/features*.json
+data/external/raw/
+data/external/sessions/
 data/sessions/
 data/sessions-real/
 tune/models/
+__pycache__/
+tune/*-quicktest*
