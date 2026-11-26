@@ -16,3 +16,4 @@ bench/site/bench.js
 .playwright-mcp/
 tune/r3/flags.json
 tune/r3/__pycache__/
+.vercel

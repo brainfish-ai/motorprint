@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://motorprint.vercel.app/sitemap.xml
