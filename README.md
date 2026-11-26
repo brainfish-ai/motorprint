@@ -1,6 +1,16 @@
-# <img src="demo/motorprint-logo.svg" alt="" width="28" height="28" valign="middle" /> motorprint
-
-**A tiny bot detector that runs on the device.** It reads how the pointer, clicks, scrolling and typing *move* (speed, jerk, curvature, timing rhythm), scores each 3 second window with a small int8 neural net (38 → 32 → 16 → 1, 80% pruned), and returns a bot score from 0 to 1. It needs no server, no LLM and no network calls, and nothing leaves the tab.
+<div align="center">
+  <img src="demo/motorprint-logo.svg" alt="motorprint" width="84" height="84" />
+  <h1>motorprint</h1>
+  <p><strong>A tiny bot detector that runs on the device.</strong></p>
+  <p>Reads how the pointer, clicks, scrolling and typing move, scores each 3 second window with a small int8 neural net (38 → 32 → 16 → 1, 80% pruned), and returns a bot score from 0 to 1. No server, no LLM, no network calls — nothing leaves the tab.</p>
+  <p>
+    <a href="https://www.npmjs.com/package/@brainfish-ai/motorprint"><img src="https://img.shields.io/npm/v/@brainfish-ai/motorprint?color=111827&label=npm" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/@brainfish-ai/motorprint"><img src="https://img.shields.io/npm/dm/@brainfish-ai/motorprint?color=22c55e&label=downloads" alt="npm downloads" /></a>
+    <img src="https://img.shields.io/badge/gzipped-~5.4%20KB-6366f1" alt="gzipped size ~5.4 KB" />
+    <a href="https://github.com/brainfish-ai/motorprint/stargazers"><img src="https://img.shields.io/github/stars/brainfish-ai/motorprint?color=eab308" alt="GitHub stars" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0284c7" alt="MIT license" /></a>
+  </p>
+</div>
 
 <p align="center">
   <img src="demo/motorprint-demo.gif" alt="motorprint live demo showing the dial, verdict, and pointer trail" width="760" />

@@ -25,7 +25,7 @@ main { padding: 20px 28px; }
 .long p { padding: 18px 0; border-bottom: 1px dashed var(--rule); }
 
 /* Brainfish logo and the "Powered by" line */
-.brand { display:inline-block; margin-bottom: 12px; }
+.brand { display:block; width:fit-content; margin: 0 auto 12px; }
 .brand img { display:block; height: 23px; width:auto; }
 footer { padding: 18px 28px; display:flex; justify-content:space-between; align-items:center; gap:12px 24px; flex-wrap:wrap; }
 .powered { display:inline-flex; align-items:center; gap:8px; color:var(--mut); text-decoration:none; }
