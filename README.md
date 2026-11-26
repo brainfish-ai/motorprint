@@ -8,8 +8,8 @@
     <a href="https://motorprint.vercel.app/"><img src="https://img.shields.io/badge/demo-live-22c55e" alt="live demo" /></a>
     <img src="https://img.shields.io/badge/gzipped-~5.4%20KB-6366f1" alt="gzipped size ~5.4 KB" />
     <a href="https://github.com/brainfish-ai/motorprint/stargazers"><img src="https://img.shields.io/github/stars/brainfish-ai/motorprint?color=eab308&label=stars" alt="GitHub stars" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-0284c7" alt="Code license: MIT" /></a>
-    <a href="LICENSE-MODEL"><img src="https://img.shields.io/badge/model-AGPL--3.0-dc2626" alt="Model license: AGPL-3.0" /></a>
+    <a href="LICENSE"><img src="https://badgen.net/badge/code/MIT/blue" alt="Code license: MIT" /></a>
+    <a href="LICENSE-MODEL"><img src="https://badgen.net/badge/model/AGPL-3.0/red" alt="Model license: AGPL-3.0" /></a>
   </p>
 </div>
 
