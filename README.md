@@ -1,6 +1,10 @@
-# motorprint
+# <img src="demo/motorprint-logo.svg" alt="" width="28" height="28" valign="middle" /> motorprint
 
 **A tiny bot detector that runs on the device.** It reads how the pointer, clicks, scrolling and typing *move* (speed, jerk, curvature, timing rhythm), scores each 3 second window with a small int8 neural net (38 → 32 → 16 → 1, 80% pruned), and returns a bot score from 0 to 1. It needs no server, no LLM and no network calls, and nothing leaves the tab.
+
+<p align="center">
+  <img src="demo/motorprint-demo.gif" alt="motorprint live demo showing the dial, verdict, and pointer trail" width="760" />
+</p>
 
 - **About 5.4 KB gzipped** for the whole library (minified ESM, model included).
 - **About 85 µs per window** in Node (feature extraction is most of it; the model is ~2 µs). It scores every 500 ms by default.
@@ -11,8 +15,12 @@
 
 ## Install and use
 
+```bash
+npm install @brainfish-ai/motorprint
+```
+
 ```ts
-import { createBotDetector } from 'motorprint';
+import { createBotDetector } from '@brainfish-ai/motorprint';
 
 const detector = createBotDetector({
   onScore: ({ score, isBot, windows }) => {
@@ -24,7 +32,7 @@ const detector = createBotDetector({
 ```
 
 ```tsx
-import { useBotScore } from 'motorprint/react';
+import { useBotScore } from '@brainfish-ai/motorprint/react';
 
 function Checkout() {
   const bot = useBotScore();

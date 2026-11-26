@@ -173,4 +173,226 @@ function render(s: BotScore) {
   history.push(s.score); if (history.length > 60) history.shift();
   drawSpark();
 }
-createBotDetector({ onScore: render });
+const det = createBotDetector({ onScore: render });
+
+// ---------- floating mini-meter when scrolled out of view ----------
+const gaugeSlot = $('gauge-slot');
+const gaugeBox = $('gaugebox');
+let isFloating = false;
+function setFloating(next: boolean) {
+  if (next === isFloating) return;
+  isFloating = next;
+  if (next) {
+    gaugeSlot.style.minHeight = `${gaugeBox.offsetHeight}px`;
+    gaugeBox.classList.add('floating');
+  } else {
+    gaugeBox.classList.remove('floating');
+    gaugeSlot.style.minHeight = '';
+  }
+}
+new IntersectionObserver(
+  ([entry]) => {
+    setFloating(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+  },
+  { threshold: 0.1 },
+).observe(gaugeSlot);
+
+// ---------- bot simulation ----------
+const simBtn = $('sim-bot') as HTMLButtonElement;
+const fieldEl = $('field') as HTMLInputElement;
+let simStop: (() => void) | null = null;
+
+function resetAll() {
+  simStop?.();
+  det.reset();
+  pts.length = 0;
+  history.length = 0;
+  tone = 'wait';
+  delete root.dataset.tone;
+  $('score').textContent = '--';
+  ($('arc') as unknown as SVGPathElement).style.strokeDashoffset = '251.3';
+  $('needle').style.transform = 'rotate(-90deg)';
+  const v = $('verdict');
+  v.className = 'verdict wait';
+  v.textContent = 'waiting for input';
+  $('windows').textContent = '0 windows';
+  $('raw').textContent = 'raw --';
+  $('inf').textContent = '-- ms';
+  rows.forEach((tr) => {
+    tr.cells[1].textContent = '0';
+    (tr.cells[2].firstChild as HTMLElement).style.width = '0';
+  });
+  fieldEl.value = '';
+  sb.scrollTop = 0;
+  drawPrint(performance.now());
+  drawSpark();
+}
+
+function startBotSim() {
+  resetAll();
+  let stopped = false;
+  const timers = new Set<number>();
+  const wait = (ms: number) =>
+    new Promise<void>((resolve) => {
+      const id = window.setTimeout(() => {
+        timers.delete(id);
+        resolve();
+      }, ms);
+      timers.add(id);
+    });
+
+  const center = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  };
+
+  let curX = innerWidth * 0.5;
+  let curY = innerHeight * 0.5;
+
+  const emitMove = (target: EventTarget, x: number, y: number) => {
+    target.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y, bubbles: true, pointerType: 'mouse' }));
+    target.dispatchEvent(new MouseEvent('mousemove', { clientX: x, clientY: y, bubbles: true }));
+  };
+
+  const focusTarget = async (el: Element) => {
+    if (stopped) return;
+    const r = el.getBoundingClientRect();
+    const pad = 110;
+    if (r.top < pad || r.bottom > innerHeight - pad) {
+      el.scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'center' });
+      await wait(calm ? 40 : 320);
+    }
+  };
+
+  const glideTo = async (el: Element, steps = 16, stepMs = 14) => {
+    await focusTarget(el);
+    if (stopped) return;
+    const sx = curX;
+    const sy = curY;
+    for (let i = 1; i <= steps; i++) {
+      if (stopped) return;
+      const { x: tx, y: ty } = center(el);
+      const t = i / steps;
+      curX = sx + (tx - sx) * t;
+      curY = sy + (ty - sy) * t;
+      emitMove(el, curX, curY);
+      await wait(stepMs);
+    }
+  };
+
+  const botClick = async (el: Element) => {
+    if (stopped) return;
+    el.dispatchEvent(new PointerEvent('pointerdown', { clientX: curX, clientY: curY, bubbles: true, pointerType: 'mouse', pressure: 0 }));
+    el.dispatchEvent(new MouseEvent('mousedown', { clientX: curX, clientY: curY, bubbles: true, button: 0 }));
+    await wait(8);
+    if (stopped) return;
+    el.dispatchEvent(new MouseEvent('mouseup', { clientX: curX, clientY: curY, bubbles: true, button: 0 }));
+    el.dispatchEvent(new MouseEvent('click', { clientX: curX, clientY: curY, bubbles: true, button: 0 }));
+    el.classList.add('sim-hit');
+    const id = window.setTimeout(() => el.classList.remove('sim-hit'), 180);
+    timers.add(id);
+  };
+
+  simStop = () => {
+    stopped = true;
+    timers.forEach((id) => clearTimeout(id));
+    timers.clear();
+    simBtn.textContent = 'Simulate bot';
+    simBtn.classList.remove('running');
+    simStop = null;
+  };
+
+  simBtn.textContent = 'Stop bot';
+  simBtn.classList.add('running');
+
+  (async () => {
+    const btns = Array.from(grid.querySelectorAll('button'));
+    const pick = [btns[0], btns[3], btns[5], btns[1], btns[8]].filter(Boolean);
+    await focusTarget(pick[0] ?? fieldEl);
+    if (stopped) return;
+    const startPt = center(pick[0] ?? fieldEl);
+    curX = startPt.x;
+    curY = startPt.y;
+
+    for (const b of pick) {
+      if (stopped) return;
+      await glideTo(b, 14, 14);
+      await botClick(b);
+      await wait(120);
+    }
+
+    if (!stopped) {
+      await glideTo(fieldEl, 16, 14);
+      await botClick(fieldEl);
+      fieldEl.focus({ preventScroll: true });
+      const text = 'automated checkout bot';
+      for (const ch of text) {
+        if (stopped) return;
+        const code = ch === ' ' ? 'Space' : `Key${ch.toUpperCase()}`;
+        fieldEl.dispatchEvent(new KeyboardEvent('keydown', { key: ch, code, bubbles: true }));
+        fieldEl.value += ch;
+        fieldEl.dispatchEvent(new InputEvent('input', { data: ch, inputType: 'insertText', bubbles: true }));
+        await wait(24);
+        if (stopped) return;
+        fieldEl.dispatchEvent(new KeyboardEvent('keyup', { key: ch, code, bubbles: true }));
+        await wait(28);
+      }
+    }
+
+    if (!stopped) {
+      await glideTo(sb, 14, 14);
+      for (let i = 0; i < 10; i++) {
+        if (stopped) return;
+        sb.dispatchEvent(new WheelEvent('wheel', { deltaY: 120, clientX: curX, clientY: curY, bubbles: true }));
+        sb.scrollTop += 40;
+        await wait(65);
+      }
+    }
+
+    for (const b of [btns[2], btns[4], btns[6], btns[7]].filter(Boolean)) {
+      if (stopped) return;
+      await glideTo(b, 14, 14);
+      await botClick(b);
+      await wait(140);
+    }
+
+    if (!stopped) simStop?.();
+  })();
+}
+
+simBtn.addEventListener('click', () => {
+  if (simStop) simStop();
+  else startBotSim();
+});
+
+// ---------- copy buttons in install panel ----------
+document.querySelectorAll<HTMLButtonElement>('.copy-btn').forEach((btn) => {
+  let timer: number | undefined;
+  btn.addEventListener('click', async () => {
+    const codeEl = btn.closest('.codeblock')?.querySelector('code');
+    const lines = codeEl?.querySelectorAll('.line');
+    const code = lines?.length
+      ? Array.from(lines, (el) => el.textContent ?? '').join('\n')
+      : (codeEl?.textContent ?? '');
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = code;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      ta.remove();
+    }
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+});

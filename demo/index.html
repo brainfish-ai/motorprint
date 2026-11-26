@@ -18,7 +18,9 @@
   <p>Move the mouse, click the buttons, type and scroll. A tiny neural net (<span id="msize"></span>) scores every 3 second window of your input dynamics, right here in the tab. Nothing is sent anywhere.</p>
 </header>
 <main class="layout">
-  <section class="panel gaugebox">
+  <div class="gauge-slot" id="gauge-slot">
+  <section class="panel gaugebox" id="gaugebox">
+    <button type="button" id="sim-bot" class="sim-btn">Simulate bot</button>
     <div class="dial">
       <svg viewBox="0 0 200 132" class="gauge" role="img" aria-label="Bot score meter, from 0 (human) to 1 (automated)">
         <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#a3e635"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#d4311f"/></linearGradient></defs>
@@ -41,6 +43,7 @@
       <figcaption>Your motor print: the last 3 seconds of pointer movement and clicks. This is what gets scored.</figcaption>
     </figure>
   </section>
+  </div>
   <section class="panel play">
     <h2>Playground</h2>
     <div class="grid" id="grid"></div>
@@ -50,6 +53,39 @@
   <section class="panel feats">
     <h2>Feature readout <small>(latest window)</small></h2>
     <table id="ftable"></table>
+  </section>
+  <section class="panel install">
+    <div class="install-head">
+      <h2>Install &amp; use</h2>
+      <div class="install-links">
+        <a href="https://www.npmjs.com/package/@brainfish-ai/motorprint" target="_blank" rel="noreferrer">npm</a>
+        <a href="https://github.com/brainfish-ai/motorprint" target="_blank" rel="noreferrer">GitHub</a>
+      </div>
+    </div>
+    <p class="install-note">Runs completely on-device in ~5.4 KB gzipped. No server, no LLM, no network calls.</p>
+    <div class="install-grid">
+      <div class="codeblock">
+        <div class="code-head">
+          <span class="code-label">Install <span class="code-lang">bash</span></span>
+          <button type="button" class="copy-btn" aria-label="Copy install command">Copy</button>
+        </div>
+        <pre><code><span class="line"><span class="mt-fn">npm</span> <span class="mt-id">install</span> <span class="mt-str">@brainfish-ai/motorprint</span></span></code></pre>
+      </div>
+      <div class="codeblock">
+        <div class="code-head">
+          <span class="code-label">Vanilla JS / TypeScript <span class="code-lang">ts</span></span>
+          <button type="button" class="copy-btn" aria-label="Copy Vanilla JS snippet">Copy</button>
+        </div>
+        <pre><code><span class="line"><span class="mt-kw">import</span> { <span class="mt-id">createBotDetector</span> } <span class="mt-kw">from</span> <span class="mt-str">'@brainfish-ai/motorprint'</span>;</span><span class="line"><span class="mt-kw2">const</span> <span class="mt-id">detector</span> = <span class="mt-fn">createBotDetector</span>({</span><span class="line">  <span class="mt-prop">onScore</span>: ({ <span class="mt-id">score</span>, <span class="mt-id">isBot</span>, <span class="mt-id">windows</span> }) =&gt; {</span><span class="line">    <span class="mt-kw">if</span> (<span class="mt-id">windows</span> &gt;= <span class="mt-num">4</span> &amp;&amp; <span class="mt-id">isBot</span>) <span class="mt-fn">markSessionSuspicious</span>(<span class="mt-id">score</span>);</span><span class="line">  },</span><span class="line">});</span></code></pre>
+      </div>
+      <div class="codeblock">
+        <div class="code-head">
+          <span class="code-label">React <span class="code-lang">tsx</span></span>
+          <button type="button" class="copy-btn" aria-label="Copy React snippet">Copy</button>
+        </div>
+        <pre><code><span class="line"><span class="mt-kw">import</span> { <span class="mt-id">useBotScore</span> } <span class="mt-kw">from</span> <span class="mt-str">'@brainfish-ai/motorprint/react'</span>;</span><span class="line"><span class="mt-kw2">function</span> <span class="mt-fn">Checkout</span>() {</span><span class="line">  <span class="mt-kw2">const</span> <span class="mt-id">bot</span> = <span class="mt-fn">useBotScore</span>();</span><span class="line">  <span class="mt-kw">return</span> <span class="mt-tag">&lt;input</span> <span class="mt-prop">type</span>=<span class="mt-str">"hidden"</span> <span class="mt-prop">name</span>=<span class="mt-str">"motorprint"</span> <span class="mt-prop">value</span>={<span class="mt-id">bot</span> ? <span class="mt-id">bot</span>.<span class="mt-id">score</span>.<span class="mt-fn">toFixed</span>(<span class="mt-num">3</span>) : <span class="mt-str">''</span>} <span class="mt-tag">/&gt;</span>;</span><span class="line">}</span></code></pre>
+      </div>
+    </div>
   </section>
 </main>
 <footer><a href="./collect.html">Record a real session for training</a>
