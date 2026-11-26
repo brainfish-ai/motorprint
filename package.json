@@ -2,7 +2,7 @@
   "name": "@brainfish-ai/motorprint",
   "version": "0.1.0",
   "description": "Tiny on-device bot vs human detector for the browser. Reads pointer, click, scroll and typing dynamics. No server, no LLM.",
-  "license": "MIT",
+  "license": "(MIT AND AGPL-3.0-only)",
   "repository": {
     "type": "git",
     "url": "https://github.com/brainfish-ai/motorprint.git"
@@ -25,7 +25,8 @@
   "files": [
     "lib",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "LICENSE-MODEL"
   ],
   "sideEffects": false,
   "peerDependencies": {

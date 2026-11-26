@@ -27,6 +27,15 @@ main { padding: 20px 28px; }
 /* Brainfish logo and the "Powered by" line */
 .brand { display:block; width:fit-content; margin: 0 auto 12px; }
 .brand img { display:block; height: 23px; width:auto; }
+.title-row { display:flex; justify-content:space-between; align-items:center; gap:12px 20px; flex-wrap:wrap; margin-bottom:6px; }
+.title-row h1 { margin:0; }
+.header-links { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.header-links a {
+  display:inline-flex; align-items:center; padding:5px 11px; border:1px solid var(--fg); border-radius:4px;
+  background:var(--field); color:var(--fg); font-size:13px; font-weight:500; text-decoration:none;
+  box-shadow:1.5px 1.5px 0 0 var(--fg);
+}
+.header-links a:hover { background:var(--lime); }
 footer { padding: 18px 28px; display:flex; justify-content:space-between; align-items:center; gap:12px 24px; flex-wrap:wrap; }
 .powered { display:inline-flex; align-items:center; gap:8px; color:var(--mut); text-decoration:none; }
 .powered:hover { color:var(--fg); }

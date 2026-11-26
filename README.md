@@ -4,11 +4,12 @@
   <p><strong>A tiny bot detector that runs on the device.</strong></p>
   <p>Reads how the pointer, clicks, scrolling and typing move, scores each 3 second window with a small int8 neural net (38 → 32 → 16 → 1, 80% pruned), and returns a bot score from 0 to 1. No server, no LLM, no network calls — nothing leaves the tab.</p>
   <p>
-    <a href="https://www.npmjs.com/package/@brainfish-ai/motorprint"><img src="https://img.shields.io/badge/npm-v0.1.0-111827" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/@brainfish-ai/motorprint"><img src="https://badgen.net/npm/v/@brainfish-ai/motorprint?color=black" alt="npm version" /></a>
     <a href="https://motorprint.vercel.app/"><img src="https://img.shields.io/badge/demo-live-22c55e" alt="live demo" /></a>
     <img src="https://img.shields.io/badge/gzipped-~5.4%20KB-6366f1" alt="gzipped size ~5.4 KB" />
     <a href="https://github.com/brainfish-ai/motorprint/stargazers"><img src="https://img.shields.io/github/stars/brainfish-ai/motorprint?color=eab308&label=stars" alt="GitHub stars" /></a>
-    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0284c7" alt="MIT license" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/code-MIT-0284c7" alt="Code license: MIT" /></a>
+    <a href="LICENSE-MODEL"><img src="https://img.shields.io/badge/model-AGPL--3.0-dc2626" alt="Model license: AGPL-3.0" /></a>
   </p>
 </div>
 
@@ -148,4 +149,5 @@ Only timings, coordinates, key *codes* and element rectangles are kept in memory
 
 ## License
 
-MIT
+- **Code** (`src/`, `demo/`, `train/`, `tune/`): [MIT](LICENSE)
+- **Pre-trained model weights** (`src/weights.ts`, `lib/weights.js`): [GNU AGPL-3.0](LICENSE-MODEL)

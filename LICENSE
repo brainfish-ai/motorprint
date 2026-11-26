@@ -1,4 +1,10 @@
-MIT License
+MIT License (Code)
+
+Note on model weights:
+The source code and tooling in this repository are licensed under the MIT License
+below. The pre-trained model weights (`src/weights.ts` and compiled `lib/weights.js`)
+are separately licensed under the GNU Affero General Public License v3.0 (AGPL-3.0);
+see `LICENSE-MODEL` for the full license text.
 
 Copyright (c) 2026 Metaphor Labs
 
