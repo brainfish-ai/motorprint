@@ -1,22 +1,80 @@
-h1 small, h2 small { color: var(--mut); font-weight: 400; font-size: 14px; }
+:root { --tone: var(--mut); --glow: #a3e635; }
+:root[data-tone='human'] { --tone: #262626; --glow: #a3e635; }
+:root[data-tone='unsure'] { --tone: #7a4f00; --glow: #ffc857; }
+:root[data-tone='bot'] { --tone: var(--bad); --glow: #d4311f; }
+
+h1 small, h2 small { color: var(--mut); font-family: var(--body); font-weight: 400; font-size: 14px; letter-spacing: 0; }
 h2 { font-size: 16px; margin: 0 0 10px; }
-.layout { display: grid; grid-template-columns: 380px 1fr 380px; gap: 18px; }
-.panel { background: #121725; border: 1px solid #1f2638; border-radius: 14px; padding: 18px; }
-.gaugebox { text-align: center; }
-.gauge { width: 100%; max-width: 320px; }
-.score { margin-top: -10px; } .score span { font-size: 54px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.score small { display: block; color: var(--mut); }
-.verdict { margin: 12px auto; padding: 6px 14px; border-radius: 999px; display: inline-block; font-weight: 600; }
-.verdict.human { background: #123b2c; color: var(--ok); } .verdict.bot { background: #4a1820; color: var(--bad); }
-.verdict.unsure { background: #3e3214; color: #ffc857; } .verdict.wait { background: #1e2433; color: var(--mut); }
-.meta { color: var(--mut); font-size: 13px; font-variant-numeric: tabular-nums; }
-#spark { width: 100%; margin-top: 12px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 18px; }
+.panel { background: #fff; border: 1px solid var(--rule); border-radius: 14px; padding: 18px; }
+
+/* ---------- the meter: dial, verdict, motor print ---------- */
+.gaugebox {
+  grid-column: 1 / -1; padding: clamp(18px, 3vw, 32px);
+  border-color: var(--fg); border-radius: 6px; box-shadow: 4px 4px 0 0 var(--fg);
+  display: grid; grid-template-columns: minmax(230px, 330px) minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 24px clamp(20px, 3.5vw, 48px); align-items: center;
+}
+.dial { text-align: center; }
+.gauge { display: block; width: 100%; max-width: 330px; margin: 0 auto; }
+.gauge .zone { stroke: #d4311f; opacity: 0.2; }
+#ticks line { stroke: var(--mut); stroke-width: 1; }
+#ticks text { fill: var(--mut); font: 8px var(--body); text-anchor: middle; }
+#needle { transform-origin: 100px 110px; transform: rotate(-90deg); }
+/* Motion only while the page is really animating (.live is set from the first animation frame). */
+@media (prefers-reduced-motion: no-preference) {
+  .live #arc { transition: stroke-dashoffset 0.5s ease-out; }
+  .live #needle { transition: transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1); }
+  .live .score span, .live .verdict { transition: color 0.25s; }
+}
+.score { margin-top: -6px; }
+.score span { display: block; color: var(--tone); font-size: 60px; line-height: 1; font-weight: 700; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
+.score small { display: block; margin-top: 4px; color: var(--mut); }
+
+.verdict { color: var(--tone); font: 400 clamp(34px, 4.2vw, 58px)/1.05 var(--display); letter-spacing: -0.025em; text-wrap: balance; }
+.verdict::first-letter { text-transform: uppercase; }
+.meta { margin-top: 14px; color: var(--mut); font-size: 14px; font-variant-numeric: tabular-nums; }
+#spark { display: block; width: 100%; max-width: 360px; margin-top: 16px; border-bottom: 1px solid var(--rule); }
+
+.print { margin: 0; align-self: stretch; display: flex; flex-direction: column; gap: 8px; }
+.pad {
+  position: relative; flex: 1; min-height: 190px; border: 1px solid var(--fg); border-radius: 4px;
+  background-color: var(--bg); background-image: radial-gradient(circle, #c9d6b4 1px, transparent 1.4px); background-size: 16px 16px;
+}
+#print { position: absolute; inset: 0; width: 100%; height: 100%; }
+.print figcaption { color: var(--mut); font-size: 13px; }
+
+/* ---------- playground and feature readout ---------- */
 .play .grid { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 14px; }
-.play input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #2c3550; background: #0d111c; color: var(--fg); font: inherit; }
-.scrollbox { height: 300px; overflow: auto; margin-top: 14px; border: 1px solid #1f2638; border-radius: 8px; padding: 0 12px; }
-.scrollbox p { padding: 10px 0; border-bottom: 1px dashed #1c2232; }
+.play input { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid var(--fg); background: var(--field); color: var(--fg); font: inherit; }
+.scrollbox { height: 300px; overflow: auto; margin-top: 14px; border: 1px solid var(--rule); border-radius: 8px; padding: 0 12px; }
+.scrollbox p { padding: 10px 0; border-bottom: 1px dashed var(--rule); }
 table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
 td { padding: 2px 4px; } td.n { color: var(--mut); white-space: nowrap; } td.v { text-align: right; width: 64px; }
 td.b div { height: 6px; background: var(--acc); border-radius: 3px; opacity: .8; }
-footer { padding: 18px 28px; } a { color: var(--acc); }
-@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+a { color: var(--acc); }
+
+/* ---------- dynamic cursor (mouse and trackpad only) ---------- */
+.has-cursor, .has-cursor * { cursor: none !important; }
+.has-cursor input, .has-cursor textarea { cursor: text !important; }
+.cur-dot, .cur-ring, .cur-trail { position: fixed; top: 0; left: 0; pointer-events: none; opacity: 0; transition: opacity 0.2s; }
+.cur-trail { z-index: 9998; width: 100vw; height: 100vh; }
+.cur-ring {
+  z-index: 9999; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+  border: 1.5px solid var(--fg); background: color-mix(in srgb, var(--glow) 50%, transparent);
+  transition: opacity 0.2s, background-color 0.25s; will-change: transform;
+}
+.cur-dot { z-index: 10000; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--fg); will-change: transform; }
+.cur-on .cur-dot, .cur-on .cur-ring, .cur-on .cur-trail { opacity: 1; }
+.cur-on.cur-text .cur-dot, .cur-on.cur-text .cur-ring { opacity: 0; }
+
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .gaugebox { grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); }
+  .print { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .gaugebox { grid-template-columns: 1fr; }
+  .read { text-align: center; }
+  #spark { margin-inline: auto; }
+}

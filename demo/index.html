@@ -4,27 +4,42 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>motorprint: on-device bot detection demo</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Geist:wght@400..700&display=swap" />
 <link rel="stylesheet" href="./style.css" />
 <link rel="stylesheet" href="./demo.css" />
 </head>
 <body>
 <header>
-  <h1>motorprint <small>on-device bot detection</small></h1>
+  <a class="brand" href="https://www.brainfishai.com/"><img src="./brainfish-logo.svg" alt="Brainfish" width="147" height="23" /></a>
+  <h1><img class="mp-logo" src="./motorprint-logo.svg" alt="" width="32" height="32" /><span>motorprint <small>on-device bot detection</small></span></h1>
   <p>Move the mouse, click the buttons, type and scroll. A tiny neural net (<span id="msize"></span>) scores every 3 second window of your input dynamics, right here in the tab. Nothing is sent anywhere.</p>
 </header>
 <main class="layout">
   <section class="panel gaugebox">
-    <svg viewBox="0 0 200 120" class="gauge">
-      <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#3ddc97"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#ff5d6c"/></linearGradient></defs>
-      <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#1e2433" stroke-width="16" stroke-linecap="round"/>
-      <path id="arc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#g)" stroke-width="16" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
-      <line id="needle" x1="100" y1="110" x2="100" y2="40" stroke="#e8ebf2" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="100" cy="110" r="6" fill="#e8ebf2"/>
-    </svg>
-    <div class="score"><span id="score">--</span><small>bot score</small></div>
-    <div id="verdict" class="verdict wait">waiting for input</div>
-    <div class="meta"><span id="windows">0 windows</span> · <span id="raw">raw --</span> · <span id="inf">-- ms</span></div>
-    <canvas id="spark" width="360" height="60"></canvas>
+    <div class="dial">
+      <svg viewBox="0 0 200 132" class="gauge" role="img" aria-label="Bot score meter, from 0 (human) to 1 (automated)">
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#a3e635"/><stop offset=".5" stop-color="#ffc857"/><stop offset="1" stop-color="#d4311f"/></linearGradient></defs>
+        <g id="ticks"></g>
+        <path d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="#e5e5e5" stroke-width="16" stroke-linecap="round"/>
+        <path class="zone" d="M147.02 45.28 A80 80 0 0 1 180 110" fill="none" stroke-width="16" stroke-linecap="round"/>
+        <path id="arc" d="M20 110 A80 80 0 0 1 180 110" fill="none" stroke="url(#g)" stroke-width="16" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"/>
+        <line id="needle" x1="100" y1="110" x2="100" y2="40" stroke="#262626" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="100" cy="110" r="6" fill="#262626"/>
+      </svg>
+      <div class="score"><span id="score">--</span><small>bot score</small></div>
+    </div>
+    <div class="read">
+      <div id="verdict" class="verdict wait">waiting for input</div>
+      <div class="meta"><span id="windows">0 windows</span> · <span id="raw">raw --</span> · <span id="inf">-- ms</span></div>
+      <canvas id="spark" width="360" height="60" aria-label="Bot score over recent windows"></canvas>
+    </div>
+    <figure class="print">
+      <div class="pad"><canvas id="print" aria-label="Your pointer path over the last 3 seconds"></canvas></div>
+      <figcaption>Your motor print: the last 3 seconds of pointer movement and clicks. This is what gets scored.</figcaption>
+    </figure>
   </section>
   <section class="panel play">
     <h2>Playground</h2>
@@ -37,7 +52,8 @@
     <table id="ftable"></table>
   </section>
 </main>
-<footer><a href="./collect.html">Record a real session for training</a></footer>
+<footer><a href="./collect.html">Record a real session for training</a>
+  <a class="powered" href="https://www.brainfishai.com/">Powered by <img src="./brainfish-logo.svg" alt="Brainfish" width="115" height="18" /></a></footer>
 <script type="module" src="./main.ts"></script>
 </body>
 </html>
